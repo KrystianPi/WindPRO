@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 data.csv
 Windguru.html
+config.json
