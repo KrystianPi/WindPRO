@@ -2,7 +2,7 @@
 import os
 
 # Replace '/usr/local/bin/bin' with the actual path to your PhantomJS executable directory
-webdriver_path = '/usr/local/bin/chromedriver_mac64'
+webdriver_path = '/usr/local/bin/'
 
 # Get the current PATH and append the PhantomJS directory
 os.environ['PATH'] = f"{webdriver_path}:{os.environ['PATH']}"
