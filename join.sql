@@ -1,3 +1,4 @@
+TRUNCATE TABLE joined_wind_data;
 INSERT INTO joined_wind_data
 SELECT 
     t1.Time AS LeftTableTime,
