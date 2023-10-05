@@ -1,5 +1,5 @@
-TRUNCATE TABLE joined_wind_data;
-INSERT INTO joined_wind_data
+TRUNCATE TABLE joined_kuznica;
+INSERT INTO joined_kuznica
 SELECT 
     t1.Time AS LeftTableTime,
     t2.Datetime AS RightTableTime,
@@ -17,7 +17,7 @@ SELECT
     t1.Baro AS BaroMeasured,
     t2.Month AS Month
 FROM
-    measurments_rewa t1
+    measurments_kuznica t1
 JOIN
     historical_forecast t2
 ON
