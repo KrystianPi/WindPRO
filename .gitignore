@@ -161,3 +161,5 @@ cython_debug/
 data.csv
 Windguru.html
 config.json
+data_collection_notebooks/forecast.csv
+forecast_improved.csv
