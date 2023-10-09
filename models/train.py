@@ -2,10 +2,15 @@ import pandas as pd
 from sqlalchemy import create_engine
 import json
 import pickle
+import warnings
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 import xgboost as xgb
+from sklearn.metrics import r2_score
+
+# Ignore all warnings
+warnings.filterwarnings("ignore")
 
 class Model():
     def __init__(self, station, params):
@@ -63,21 +68,21 @@ class Model():
 
     def cross_val(self):
         # Features and labels split
-        self.X = self.df[['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 'Hour']]
+        self.X = self.df[['WindForecast', 'WindDirForecast', 'Month', 'GustForecast']]
         self.y = self.df['WindMeasured']
 
         k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
-
-        # Perform cross-validation and calculate mean and standard deviation of scores
-        scores = cross_val_score(self.model, self.X, self.y, cv=k_fold, scoring='neg_mean_squared_error')
-        mean_score = -scores.mean()
-        std_score = scores.std()
-        print(f'Mean Score: {mean_score}')
-        print(f'Std Score: {std_score}')
-        return mean_score, std_score
+        
+        def custom_r2_scorer(estimator, X, y):
+            y_pred = estimator.predict(X)
+            return r2_score(y, y_pred)
+        
+        scores= cross_val_score(self.model, self.X, self.y, cv=k_fold, scoring=custom_r2_scorer)
+        print(f'R2: {scores.mean()}')
+        return scores
 
     def fit(self):
-        self.model.fit(self.X_train, self.y_train)
+        self.model.fit(self.X, self.y)
 
     def save_model(self, path):
         with open(path, 'wb') as file:
@@ -92,9 +97,9 @@ if __name__ == '__main__':
     'max_depth': 3,
     }
 
-    model_instance = Model(params)   
+    model_instance = Model('rewa',params)   
     model_instance.get_data() 
     model_instance.transform()  
-    mean_score, std_score = model_instance.cross_val() 
+    scores = model_instance.cross_val() 
     model_instance.fit()
     model_instance.save_model(path='model.pkl')
