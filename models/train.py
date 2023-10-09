@@ -102,4 +102,4 @@ if __name__ == '__main__':
     model_instance.transform()  
     scores = model_instance.cross_val() 
     model_instance.fit()
-    model_instance.save_model(path='model.pkl')
+    model_instance.save_model(path='model_store/model.pkl')
