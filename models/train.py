@@ -9,6 +9,10 @@ import xgboost as xgb
 from sklearn.metrics import r2_score
 
 from config import get_config
+from pathlib import Path
+import os
+
+BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # Ignore all warnings
 warnings.filterwarnings("ignore")
@@ -111,4 +115,4 @@ if __name__ == '__main__':
     model_instance.transform()  
     scores = model_instance.cross_val() 
     model_instance.fit()
-    model_instance.save_model(path='model_store/model.pkl')
+    model_instance.save_model(path=os.path.join(BASE_DIR, 'models/model_store/model.pkl'))

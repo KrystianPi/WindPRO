@@ -1,8 +1,12 @@
 import json
+from pathlib import Path
+import os
+
+BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 def get_config():
     # Read the MySQL configuration from the JSON file
-    with open('config.json', 'r') as config_file:
+    with open(os.path.join(BASE_DIR, 'config.json'), 'r') as config_file:
         config = json.load(config_file)
 
     # Extract MySQL connection details
