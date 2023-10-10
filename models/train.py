@@ -14,11 +14,21 @@ from config import get_config
 warnings.filterwarnings("ignore")
 
 class Model():
-    def __init__(self, station, params):
+    def __init__(self, station, params=None, model_path=None):
         self.station = station
-        self.model = xgb.XGBRegressor(**params)
+        self.model = None       
+        # If load_from_pickle is provided, load the model from a pickle file
+        if model_path:
+            self.load_model(model_path)
+        elif params:
+            # Create a new XGBoost regressor with the provided parameters
+            self.model = xgb.XGBRegressor(**params)
+            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
+        else:
+            self.model = xgb.XGBRegressor()
+            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
 
-    def get_data(self):
+    def get_train_data(self):
         db_url = get_config()
 
         # Create an SQLAlchemy engine
@@ -57,7 +67,7 @@ class Model():
 
     def cross_val(self):
         # Features and labels split
-        self.X = self.df[['WindForecast', 'WindDirForecast', 'Month', 'GustForecast']]
+        self.X = self.df[self.feature_names]
         self.y = self.df['WindMeasured']
 
         k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -75,10 +85,20 @@ class Model():
 
     def save_model(self, path):
         with open(path, 'wb') as file:
-            pickle.dump(self.model, file)
+            model_data = {'model': self.model, 'feature_names': self.feature_names}
+            pickle.dump(model_data, file)
+
+    def predict(self, X):
+        return(self.model.predict(X))
+
+    def load_model(self, path):
+        # Load a trained model from a pickle file
+        with open(path, 'rb') as file:
+            model_data = pickle.load(file)
+            self.model = model_data['model']
+            self.feature_names = model_data.get('feature_names', None)
 
 if __name__ == '__main__': 
-    
     params = {
     'objective': 'reg:squarederror',
     'n_estimators': 100,
@@ -87,7 +107,7 @@ if __name__ == '__main__':
     }
 
     model_instance = Model('rewa',params)   
-    model_instance.get_data() 
+    model_instance.get_train_data() 
     model_instance.transform()  
     scores = model_instance.cross_val() 
     model_instance.fit()
