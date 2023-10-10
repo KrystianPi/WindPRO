@@ -1,4 +1,3 @@
-import json
 from sqlalchemy import create_engine
 from measurments import get_measurments
 from forecast import get_forecast
@@ -35,4 +34,11 @@ def ingest_forecast():
     engine = create_engine(db_url)
 
     # Insert the Pandas DataFrame into the MySQL table
-    df.to_sql(table_name, engine, if_exists='replace', index=False)    
+    try:
+        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        print(f'Forecast for {df["Time"]} ingested successfully!')   
+    except Exception as e:
+        print(f"Data type mismatch or other data error: {e}")
+    
+if __name__ == '__main__': 
+    ingest_forecast()
