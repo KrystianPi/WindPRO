@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import time
 
 def get_measurments(start_date):
+    df = pd.DataFrame()
     day_list = []
     while start_date <= datetime.today():
         day_list.append(start_date)
@@ -85,3 +86,5 @@ def get_measurments(start_date):
 
         else:
             print(f"Failed to fetch data from {url}")
+
+    return df
