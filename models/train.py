@@ -1,17 +1,14 @@
 import pandas as pd
 from sqlalchemy import create_engine
-import pickle
 import warnings
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 import xgboost as xgb
-from sklearn.metrics import r2_score
 
 from config import get_config
 from pathlib import Path
-import os
 
 import mlflow
 import mlflow.sklearn
@@ -41,9 +38,6 @@ class Model():
             self.model = xgb.XGBRegressor()
             self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
             mlflow.log_params({"feature_names": self.feature_names})
-            mlflow.log_param(f'best_max_depth', self.best_max_depth)
-            mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
-            mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
 
     def get_train_data(self):
         db_url = get_config()
