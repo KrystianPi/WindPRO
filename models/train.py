@@ -22,19 +22,28 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 warnings.filterwarnings("ignore")
 
 class Model():
-    def __init__(self, station, params=None, model_path=None):
+    def __init__(self, station, params=None, RUN_ID=None):
         self.station = station
         self.model = None       
-        # If load_from_pickle is provided, load the model from a pickle file
-        if model_path:
-            self.load_model(model_path)
+        # If run_id is provided, load the model from a mlflow pickle file
+        if RUN_ID != None:
+            self.load_model(RUN_ID)
+        # If params are provided create a new XGBoost regressor with the provided parameters
         elif params:
-            # Create a new XGBoost regressor with the provided parameters
             self.model = xgb.XGBRegressor(**params)
             self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
+            mlflow.log_params({"feature_names": self.feature_names})
+            mlflow.log_param(f'best_max_depth', self.best_max_depth)
+            mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
+            mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
+        # Else create a default model
         else:
             self.model = xgb.XGBRegressor()
             self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
+            mlflow.log_params({"feature_names": self.feature_names})
+            mlflow.log_param(f'best_max_depth', self.best_max_depth)
+            mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
+            mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
 
     def get_train_data(self):
         db_url = get_config()
@@ -78,14 +87,6 @@ class Model():
         self.y = self.df['WindMeasured']
 
     def parameter_tuning(self, parameters):
-        # Defining parameters grid
-        parameters = {
-            'max_depth': [2, 3, 4],
-            'learning_rate': [0.01, 0.1, 0.2],
-            'n_estimators': [50, 100, 200],
-            # Add other XGBoost hyperparameters here
-        }
-
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
 
         # Grid search
@@ -110,6 +111,7 @@ class Model():
     
     def k_fold_cross_validation(self):
         # Run k-fold cross validation
+        self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
         kfold_scores = cross_val_score(self.model, self.X, self.y, cv=self.k_fold)
 
         # Track metrics
@@ -119,22 +121,25 @@ class Model():
     def fit(self):
         self.model.fit(self.X, self.y)
 
-    def save_model(self, path):
-        with open(path, 'wb') as file:
-            model_data = {'model': self.model, 'feature_names': self.feature_names}
-            pickle.dump(model_data, file)
+    def save_model(self):
+        mlflow.sklearn.log_model(self.model, "model")
 
     def predict(self, X):
         return(self.model.predict(X))
 
-    def load_model(self, path):
+    def model_evaluation(self, test_data):
+        X_test = test_data[self.feature_names]
+        y_test = test_data['WindMeasured']
+        mlflow.log_metric(f"test_accuracy", self.model.score(X_test, y_test))
+
+    def load_model(self, RUN_ID):
         # Load a trained model from a pickle file
-        with open(path, 'rb') as file:
-            model_data = pickle.load(file)
-            self.model = model_data['model']
-            self.feature_names = model_data.get('feature_names', None)
+        self.model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/model")
+        self.feature_names = mlflow.get_run(RUN_ID).data.params['feature_names']
 
 if __name__ == '__main__': 
+    
+    # Initiate the model with set params
     params = {
     'objective': 'reg:squarederror',
     'n_estimators': 100,
@@ -142,10 +147,21 @@ if __name__ == '__main__':
     'max_depth': 3,
     }
 
-    model_instance = Model('rewa',params)   
-    model_instance.get_train_data() 
-    model_instance.transform()  
-    model_instance.parameter_tuning() 
-    model_instance.k_fold_cross_validation()
-    model_instance.fit()
-    model_instance.save_model(path=os.path.join(BASE_DIR, 'models/model_store/model.pkl'))
+    # Initate the model with default parameters and perform grid search 
+    params_grid = {
+        'max_depth': [2, 3, 4,5,6],
+        'learning_rate': [0.005,0.01, 0.1, 0.2],
+        'n_estimators': [30,50, 100, 200],
+    }
+
+    with mlflow.start_run() as run:   
+        model_instance = Model('rewa') 
+        model_instance.get_train_data() 
+        model_instance.transform()  
+        model_instance.parameter_tuning(params_grid) 
+        model_instance.k_fold_cross_validation()
+        model_instance.fit()
+        model_instance.save_model()
+
+    # model_instance = Model('rewa', RUN_ID='a33c8a70fe804490b5eb5b1bb53377b7') 
+    # print(model_instance.model)  
