@@ -133,6 +133,12 @@ class Model():
 
 if __name__ == '__main__': 
     
+    EXPERIMENT_NAME = "mlflow-demo"
+    try:
+        EXPERIMENT_ID = mlflow.create_experiment(EXPERIMENT_NAME)
+    except:
+        EXPERIMENT_ID = mlflow.get_experiment_by_name(EXPERIMENT_NAME).experiment_id
+
     # Initiate the model with set params
     params = {
     'objective': 'reg:squarederror',
@@ -148,7 +154,7 @@ if __name__ == '__main__':
         'n_estimators': [30,50, 100, 200],
     }
 
-    with mlflow.start_run() as run:   
+    with mlflow.start_run(experiment_id=EXPERIMENT_ID) as run:   
         model_instance = Model('rewa') 
         model_instance.get_train_data() 
         model_instance.transform()  
