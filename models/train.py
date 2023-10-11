@@ -5,12 +5,16 @@ import warnings
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
 import xgboost as xgb
 from sklearn.metrics import r2_score
 
 from config import get_config
 from pathlib import Path
 import os
+
+import mlflow
+import mlflow.sklearn
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -68,21 +72,49 @@ class Model():
         df_avg['WindDirBinForecast'] = pd.cut(df_avg['WindDirForecast'], bins=bins, labels=labels)
 
         self.df = df_avg
-
-    def cross_val(self):
+        
         # Features and labels split
         self.X = self.df[self.feature_names]
         self.y = self.df['WindMeasured']
 
-        k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
-        
-        def custom_r2_scorer(estimator, X, y):
-            y_pred = estimator.predict(X)
-            return r2_score(y, y_pred)
-        
-        scores= cross_val_score(self.model, self.X, self.y, cv=k_fold, scoring=custom_r2_scorer)
-        print(f'R2: {scores.mean()}')
-        return scores
+    def parameter_tuning(self, parameters):
+        # Defining parameters grid
+        parameters = {
+            'max_depth': [2, 3, 4],
+            'learning_rate': [0.01, 0.1, 0.2],
+            'n_estimators': [50, 100, 200],
+            # Add other XGBoost hyperparameters here
+        }
+
+        self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
+
+        # Grid search
+        xgb_regressor = xgb.XGBRegressor()
+        grid = GridSearchCV(xgb_regressor, parameters, cv=self.k_fold)
+        grid.fit(self.X, self.y)
+
+        self.best_max_depth = grid.best_params_['max_depth']
+        self.best_learning_rate = grid.best_params_['learning_rate']
+        self.best_n_estimators = grid.best_params_['n_estimators']
+        # Add other best hyperparameters as needed
+
+        mlflow.log_param(f'best_max_depth', self.best_max_depth)
+        mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
+        mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
+
+        self.model = xgb.XGBRegressor(
+                                    max_depth=self.best_max_depth,
+                                    learning_rate=self.best_learning_rate,
+                                    n_estimators=self.best_n_estimators,
+                                    )
+    
+    def k_fold_cross_validation(self):
+        # Run k-fold cross validation
+        kfold_scores = cross_val_score(self.model, self.X, self.y, cv=self.k_fold)
+
+        # Track metrics
+        mlflow.log_metric(f"average_accuracy", kfold_scores.mean())
+        mlflow.log_metric(f"std_accuracy", kfold_scores.std())
 
     def fit(self):
         self.model.fit(self.X, self.y)
@@ -113,6 +145,7 @@ if __name__ == '__main__':
     model_instance = Model('rewa',params)   
     model_instance.get_train_data() 
     model_instance.transform()  
-    scores = model_instance.cross_val() 
+    model_instance.parameter_tuning() 
+    model_instance.k_fold_cross_validation()
     model_instance.fit()
     model_instance.save_model(path=os.path.join(BASE_DIR, 'models/model_store/model.pkl'))
