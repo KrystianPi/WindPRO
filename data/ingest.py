@@ -39,6 +39,26 @@ def ingest_forecast():
         print(f'Forecast for {df["Time"]} ingested successfully!')   
     except Exception as e:
         print(f"Data type mismatch or other data error: {e}")
+
+def ingest_hist_forecast():
+    # Table containing all historical forecast
+    table_name = 'forecast_rewa'
     
+    # Get past week data
+    df = get_forecast(past=True)
+
+    # Get database url
+    db_url = get_config()
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+
+    # Insert the Pandas DataFrame into the MySQL table
+    try:
+        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        print(f'Forecast for {df["Time"]} ingested successfully!')   
+    except Exception as e:
+        print(f"Data type mismatch or other data error: {e}")
+
 if __name__ == '__main__': 
     ingest_forecast()
