@@ -1,11 +1,20 @@
 import requests
 import pandas as pd
+from datetime import date
 
 URL = "https://api.open-meteo.com/v1/gfs"
 LATIUDE = 54.76
 LONGITUDE = 18.51
 
-def get_forecast(): 
+def get_forecast(past = False):
+    today = date.today()
+    if past:
+        forecast_days = 1
+        past_days = 7
+    else:
+        forecast_days = 3
+        past_days = 0
+
     # Define the parameters for the API request
     params = {
         "latitude": LATIUDE,
@@ -13,7 +22,8 @@ def get_forecast():
         "hourly": "windspeed_10m,windgusts_10m,winddirection_10m",
         "windspeed_unit": "kn",
         "timezone": "Europe/Berlin",
-        "forecast_days": 3,
+        "forecast_days": forecast_days,
+        "past_days": past_days
     }
     # Make the GET request to the API
     response = requests.get(URL, params=params)
@@ -34,8 +44,9 @@ def get_forecast():
     else:
         # Handle the error
         print(f"Failed to retrieve data. Status code: {response.status_code}")
-
+    if past:
+        df = df[df['Time'].dt.date < today]
     return df
 
 if __name__ == "__main__":
-    get_forecast()
+    get_forecast(past=True)
