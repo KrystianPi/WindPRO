@@ -5,8 +5,11 @@ import pandas as pd
 def retrain():
     pass
 
-def predict():
-    pass
+def predict(station, RUN_ID):
+    df_forecast = select_forecast(station,purpose='predict')
+    model = Model(station='rewa', RUN_ID=RUN_ID)
+    X = df_forecast[model.feature_names]
+    model.predict(X)
 
 def monitor(station, RUN_ID):
     df_forecast = select_forecast(station, purpose='test')
@@ -25,4 +28,5 @@ def monitor(station, RUN_ID):
 
 
 if __name__ == '__main__': 
-    monitor(station='rewa', RUN_ID='1b96b8edbddb4e95866a5431b25becd0')
+    #monitor(station='rewa', RUN_ID='1b96b8edbddb4e95866a5431b25becd0')
+    predict(station='rewa', RUN_ID='1b96b8edbddb4e95866a5431b25becd0')
