@@ -29,7 +29,8 @@ class Model():
         # If params are provided create a new XGBoost regressor with the provided parameters
         elif params:
             self.model = xgb.XGBRegressor(**params)
-            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
+            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
+                                  'Hour', 'Temperature', 'Cloudcover','Precipitation'] 
             mlflow.log_params({"feature_names": self.feature_names})
             mlflow.log_param(f'best_max_depth', self.best_max_depth)
             mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
@@ -37,7 +38,8 @@ class Model():
         # Else create a default model
         else:
             self.model = xgb.XGBRegressor()
-            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast'] 
+            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
+                                    'Hour', 'Temperature', 'Cloudcover','Precipitation'] 
             mlflow.log_params({"feature_names": self.feature_names})
 
     def get_train_data(self):
@@ -50,36 +52,34 @@ class Model():
         connection = engine.connect()
 
         # Specify the SQL query to retrieve data from a table
-        query = f"SELECT * FROM joined_{self.station}"
+        query_forecast = f"SELECT * FROM forecast_{self.station}"
+        query_measurments = f"SELECT * FROM measurments_{self.station}"
 
         # Use Pandas to read data from the database into a DataFrame
-        df = pd.read_sql(query, connection)
+        self.df_forecast = pd.read_sql(query_forecast, connection)
+        self.df_measurments = pd.read_sql(query_measurments, connection)
 
-        # Close the database connection
         connection.close()
 
-        self.df = df
-
     def transform(self):
-        # Average
-        df_avg = self.df.groupby('RightTableTime')[['WindMeasured', 'WindForecast', 'WindDirForecast', 
-                                                'Month', 'CloudForecast','GustForecast','TempForecast',
-                                                'PrecipitationForecast', 'WindDirMeasured']] \
-                                                .mean().reset_index().dropna()
+        # Set the 'Time' column as the index
+        self.df_measurments.set_index('Time', inplace=True)
 
-        # Define wind direction bins
-        bins = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-        labels = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+        # Resample the data with a two-hour interval and apply mean aggregation
+        self.df_measurments = self.df_measurments.resample('2H').mean()
 
-        # Bin wind directions and calculate mean wind speed for each bin
-        df_avg['WindDirMeasuredBin'] = pd.cut(df_avg['WindDirMeasured'], bins=bins, labels=labels)
-        df_avg['WindDirBinForecast'] = pd.cut(df_avg['WindDirForecast'], bins=bins, labels=labels)
+        self.df_measurments.reset_index(inplace=True)
 
-        self.df = df_avg
+        df = pd.merge(left=self.df_forecast, right=self.df_measurments, on='Time', how='inner')
+
+        df.dropna(inplace=True)
+
+        # Close the database connections
+        self.df = df
         
         # Features and labels split
         self.X = self.df[self.feature_names]
-        self.y = self.df['WindMeasured']
+        self.y = self.df['WindSpeed']
 
     def parameter_tuning(self, parameters):
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -120,11 +120,13 @@ class Model():
         mlflow.sklearn.log_model(self.model, "model")
 
     def predict(self, X):
-        return(self.model.predict(X))
+        pred = self.model.predict(X)
+        print(pred)
+        return(pred)
 
     def model_evaluation(self, test_data):
         X_test = test_data[self.feature_names]
-        y_test = test_data['WindMeasured']
+        y_test = test_data['WindSpeed']
         mlflow.log_metric(f"test_accuracy", self.model.score(X_test, y_test))
 
     def load_model(self, RUN_ID):
@@ -133,36 +135,4 @@ class Model():
         self.feature_names = ast.literal_eval(mlflow.get_run(RUN_ID).data.params['feature_names'])
 
 if __name__ == '__main__': 
-    
-    EXPERIMENT_NAME = "mlflow-demo"
-    try:
-        EXPERIMENT_ID = mlflow.create_experiment(EXPERIMENT_NAME)
-    except:
-        EXPERIMENT_ID = mlflow.get_experiment_by_name(EXPERIMENT_NAME).experiment_id
-
-    # Initiate the model with set params
-    params = {
-    'objective': 'reg:squarederror',
-    'n_estimators': 100,
-    'learning_rate': 0.1,
-    'max_depth': 3,
-    }
-
-    # Initate the model with default parameters and perform grid search 
-    params_grid = {
-        'max_depth': [2, 3, 4,5,6],
-        'learning_rate': [0.005,0.01, 0.1, 0.2],
-        'n_estimators': [30,50, 100, 200],
-    }
-
-    with mlflow.start_run(experiment_id=EXPERIMENT_ID) as run:   
-        model_instance = Model('rewa') 
-        model_instance.get_train_data() 
-        model_instance.transform()  
-        model_instance.parameter_tuning(params_grid) 
-        model_instance.k_fold_cross_validation()
-        model_instance.fit()
-        model_instance.save_model()
-
-    # model_instance = Model('rewa', RUN_ID='a33c8a70fe804490b5eb5b1bb53377b7') 
-    # print(model_instance.model)  
+    pass
