@@ -10,7 +10,7 @@ import datetime
 def predict(station, RUN_ID):
     ingest_forecast()
     df_forecast = select_forecast(station,purpose='predict')
-    model = Model(station='rewa', RUN_ID=RUN_ID, load=True, model_name="xgboost-8features-hpt", version=2)
+    model = Model(station='rewa', RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
     X = df_forecast[model.feature_names]
     model.predict(X)
 
@@ -34,12 +34,12 @@ def monitor(station, RUN_ID):
 
     print(df_test)
 
-    model = Model(station='rewa', RUN_ID=RUN_ID, load=True, model_name="xgboost-8features-hpt", version=2)
+    model = Model(station='rewa', RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
     model.model_evaluation(df_test)
 
 # Trigger Every Month
 def retrain(station, RUN_ID):
-    model = Model(station=station,RUN_ID=RUN_ID,load=True, model_name="xgboost-8features-hpt", version=2)
+    model = Model(station=station,RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
     model.get_train_data() 
     model.transform()  
     # model.parameter_tuning(params_grid) 

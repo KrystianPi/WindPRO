@@ -4,7 +4,6 @@ import warnings
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
-from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score
 import xgboost as xgb
 
@@ -22,28 +21,14 @@ warnings.filterwarnings("ignore")
 
 # This class should be only for predicitng, model evaluation and retraining
 class Model():
-    def __init__(self, station, RUN_ID, params=None, load=True, model_name=None, version=None):
-        self.station = station
-        self.model = None    
+    def __init__(self, station, RUN_ID, model_name, version):
+        self.station = station 
         self.id = RUN_ID 
         self.model_name = model_name
         self.version = version
         self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
                         'Hour', 'Temperature', 'Cloudcover','Precipitation']   
-        # If run_id is provided, load the model from a mlflow pickle file
-        if load:
-            self.load_model()
-        # If params are provided create a new XGBoost regressor with the provided parameters
-        elif params:
-            self.model = xgb.XGBRegressor(**params)
-            mlflow.log_params({"feature_names": self.feature_names})
-            mlflow.log_param(f'best_max_depth', self.best_max_depth)
-            mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
-            mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
-        # Else create a default model
-        else:
-            self.model = xgb.XGBRegressor()
-            mlflow.log_params({"feature_names": self.feature_names})
+        self.load_model()
 
     def get_train_data(self):
         db_url = get_config()
