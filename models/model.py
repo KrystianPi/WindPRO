@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # Ignore all warnings
 warnings.filterwarnings("ignore")
 
+# This class should be only for predicitng, model evaluation and retraining
 class Model():
     def __init__(self, station, RUN_ID, params=None, load=True, model_name=None, version=None):
         self.station = station
