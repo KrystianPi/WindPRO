@@ -13,6 +13,7 @@ from pathlib import Path
 
 import mlflow
 import mlflow.sklearn
+import mlflow.pyfunc
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -20,17 +21,20 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 warnings.filterwarnings("ignore")
 
 class Model():
-    def __init__(self, station, params=None, RUN_ID=None):
+    def __init__(self, station, RUN_ID, params=None, load=True, model_name=None, version=None):
         self.station = station
-        self.model = None       
+        self.model = None    
+        self.id = RUN_ID 
+        self.model_name = model_name
+        self.version = version
+        self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
+                        'Hour', 'Temperature', 'Cloudcover','Precipitation']   
         # If run_id is provided, load the model from a mlflow pickle file
-        if RUN_ID != None:
-            self.load_model(RUN_ID)
+        if load:
+            self.load_model()
         # If params are provided create a new XGBoost regressor with the provided parameters
         elif params:
             self.model = xgb.XGBRegressor(**params)
-            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
-                                  'Hour', 'Temperature', 'Cloudcover','Precipitation'] 
             mlflow.log_params({"feature_names": self.feature_names})
             mlflow.log_param(f'best_max_depth', self.best_max_depth)
             mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
@@ -38,8 +42,6 @@ class Model():
         # Else create a default model
         else:
             self.model = xgb.XGBRegressor()
-            self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
-                                    'Hour', 'Temperature', 'Cloudcover','Precipitation'] 
             mlflow.log_params({"feature_names": self.feature_names})
 
     def get_train_data(self):
@@ -117,7 +119,10 @@ class Model():
         self.model.fit(self.X, self.y)
 
     def save_model(self):
-        mlflow.sklearn.log_model(self.model, "model")
+        mlflow.register_model(
+        f"runs:/{self.id}/sklearn-model", "xgboost-8features-hpt"
+        )
+        mlflow.sklearn.log_model(self.model, "sklearn-model")
 
     def predict(self, X):
         pred = self.model.predict(X)
@@ -129,10 +134,9 @@ class Model():
         y_test = test_data['WindSpeed']
         mlflow.log_metric(f"test_accuracy", self.model.score(X_test, y_test))
 
-    def load_model(self, RUN_ID):
+    def load_model(self):
         # Load a trained model from a pickle file
-        self.model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/model")
-        self.feature_names = ast.literal_eval(mlflow.get_run(RUN_ID).data.params['feature_names'])
+        self.model = mlflow.pyfunc.load_model(model_uri=f"models:/{self.model_name}/{self.version}")
 
 if __name__ == '__main__': 
     pass
