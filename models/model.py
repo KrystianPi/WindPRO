@@ -1,11 +1,11 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import warnings
-import ast
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import r2_score
 import xgboost as xgb
 
 from .config import get_config
@@ -126,13 +126,15 @@ class Model():
 
     def predict(self, X):
         pred = self.model.predict(X)
+        # Convert predictions to a suitable format (e.g., a Python list or dictionary)
         print(pred)
         return(pred)
 
     def model_evaluation(self, test_data):
         X_test = test_data[self.feature_names]
         y_test = test_data['WindSpeed']
-        mlflow.log_metric(f"test_accuracy", self.model.score(X_test, y_test))
+        y_pred = self.model.predict(X_test)
+        mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
 
     def load_model(self):
         # Load a trained model from a pickle file
