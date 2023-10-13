@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-from measurments import get_measurments
-from forecast import get_forecast
-from config import get_config
+from .measurments import get_measurments
+from .forecast import get_forecast
+from .config import get_config
 import pandas as pd
 
 def ingest_measurments(past_days):
@@ -41,12 +41,12 @@ def ingest_forecast():
     except Exception as e:
         print(f"Data type mismatch or other data error: {e}")
 
-def ingest_hist_forecast():
+def ingest_hist_forecast(past_days):
     # Table containing all historical forecast
     table_name = 'forecast_rewa'
     
     # Get past week data
-    df = get_forecast(past=True)
+    df = get_forecast(past_days)
 
     # Get database url
     db_url = get_config()
