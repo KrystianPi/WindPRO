@@ -6,9 +6,9 @@ URL = "https://api.open-meteo.com/v1/gfs"
 LATIUDE = 54.76
 LONGITUDE = 18.51
 
-def get_forecast(past = False):
+def get_forecast(past_days = 0):
     today = date.today()
-    if past:
+    if past_days == 7:
         forecast_days = 1
         past_days = 7
     else:
@@ -56,7 +56,7 @@ def get_forecast(past = False):
     else:
         # Handle the error
         print(f"Failed to retrieve data. Status code: {response.status_code}")
-    if past:
+    if past_days==7:
         df = df[df['Time'].dt.date < today]
     return df
 
