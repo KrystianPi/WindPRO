@@ -1,27 +1,23 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI
+import uvicorn
 from main import predict, monitor, retrain
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/predict', methods=['POST'])
-def api_predict():
-    station = request.json.get('station', 'rewa')
-    RUN_ID = request.json.get('RUN_ID', '1b96b8edbddb4e95866a5431b25becd0')
+@app.post("/predict")
+def api_predict(station: str = 'rewa', RUN_ID: str = 'ed005057302f4018a8bb1c0d50459e99'):
     predict(station, RUN_ID)
-    return jsonify({"message": "Prediction completed!"})
+    return {"message": "Prediction completed!"}
 
-@app.route('/monitor', methods=['POST'])
-def api_monitor():
-    station = request.json.get('station', 'rewa')
-    RUN_ID = request.json.get('RUN_ID', '1b96b8edbddb4e95866a5431b25becd0')
+@app.post("/monitor")
+def api_monitor(station: str = 'rewa', RUN_ID: str = 'ed005057302f4018a8bb1c0d50459e99'):
     monitor(station, RUN_ID)
-    return jsonify({"message": "Monitor completed!"})
+    return {"message": "Monitor completed!"}
 
-@app.route('/retrain', methods=['POST'])
-def api_retrain():
-    station = request.json.get('station', 'rewa')
+@app.post("/retrain")
+def api_retrain(station: str = 'rewa'):
     retrain(station)
-    return jsonify({"message": "Retraining completed!"})
+    return {"message": "Retraining completed!"}
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
