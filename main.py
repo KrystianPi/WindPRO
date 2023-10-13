@@ -39,17 +39,10 @@ def monitor(station, RUN_ID):
 
 # Trigger Every Month
 def retrain(station, RUN_ID):
-    # Initate the model with default parameters and perform grid search 
-    params_grid = {
-        'max_depth': [2, 3, 4,5,6],
-        'learning_rate': [0.005,0.01, 0.1, 0.2],
-        'n_estimators': [30,50, 100, 200],
-    }
-
-    model = Model(station=station,RUN_ID=RUN_ID,load=False)
+    model = Model(station=station,RUN_ID=RUN_ID,load=True, model_name="xgboost-8features-hpt", version=2)
     model.get_train_data() 
     model.transform()  
-    model.parameter_tuning(params_grid) 
+    # model.parameter_tuning(params_grid) 
     model.k_fold_cross_validation()
     model.fit()
     model.save_model()
