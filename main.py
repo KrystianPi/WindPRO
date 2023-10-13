@@ -65,8 +65,8 @@ if __name__ == '__main__':
     
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run:  
         if sys.argv[1] == 'pred':
-            predict(station='rewa', RUN_ID='ed005057302f4018a8bb1c0d50459e99')
+            predict(station='rewa', RUN_ID=run.info.run_id)
         elif sys.argv[1] == 'mon':
-            monitor(station='rewa', RUN_ID='ed005057302f4018a8bb1c0d50459e99')
+            monitor(station='rewa', RUN_ID=run.info.run_id)
         elif sys.argv[1] == 'ret':
             retrain(station='rewa', RUN_ID=run.info.run_id)
