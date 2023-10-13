@@ -1,13 +1,14 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import warnings
+import ast
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 import xgboost as xgb
 
-from config import get_config
+from .config import get_config
 from pathlib import Path
 
 import mlflow
@@ -129,7 +130,7 @@ class Model():
     def load_model(self, RUN_ID):
         # Load a trained model from a pickle file
         self.model = mlflow.sklearn.load_model(f"runs:/{RUN_ID}/model")
-        self.feature_names = mlflow.get_run(RUN_ID).data.params['feature_names']
+        self.feature_names = ast.literal_eval(mlflow.get_run(RUN_ID).data.params['feature_names'])
 
 if __name__ == '__main__': 
     
