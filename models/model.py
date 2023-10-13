@@ -83,30 +83,7 @@ class Model():
         # Features and labels split
         self.X = self.df[self.feature_names]
         self.y = self.df['WindSpeed']
-
-    def parameter_tuning(self, parameters):
-        self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
-
-        # Grid search
-        xgb_regressor = xgb.XGBRegressor()
-        grid = GridSearchCV(xgb_regressor, parameters, cv=self.k_fold)
-        grid.fit(self.X, self.y)
-
-        self.best_max_depth = grid.best_params_['max_depth']
-        self.best_learning_rate = grid.best_params_['learning_rate']
-        self.best_n_estimators = grid.best_params_['n_estimators']
-        # Add other best hyperparameters as needed
-
-        mlflow.log_param(f'best_max_depth', self.best_max_depth)
-        mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
-        mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
-
-        self.model = xgb.XGBRegressor(
-                                    max_depth=self.best_max_depth,
-                                    learning_rate=self.best_learning_rate,
-                                    n_estimators=self.best_n_estimators,
-                                    )
-    
+   
     def k_fold_cross_validation(self):
         # Run k-fold cross validation
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
