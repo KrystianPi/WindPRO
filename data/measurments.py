@@ -7,12 +7,15 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 
-def get_measurments(start_date):
+def get_measurments(past_days):
     df = pd.DataFrame()
-    day_list = []
-    while start_date <= datetime.today():
-        day_list.append(start_date)
-        start_date += timedelta(days=1)
+    
+    # Calculate the start and end dates for the past N days
+    end_date = datetime.today()
+    start_date = end_date - timedelta(days=past_days)
+    
+    # Create a list of dates for the date range
+    day_list = pd.date_range(start=start_date, end=end_date)
 
     for date in day_list:
         # Extract info for url
