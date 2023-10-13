@@ -41,6 +41,7 @@ def get_forecast(past_days = 0):
         df['Temperature'] = data["hourly"]["temperature_2m"]
         df['Precipitation'] = data["hourly"]["precipitation"]
         df['Cloudcover'] = data["hourly"]["cloudcover"]
+        
 
         # Set the 'Time' column as the index
         df.set_index('Time', inplace=True)
@@ -52,6 +53,7 @@ def get_forecast(past_days = 0):
 
         df['Month'] = df['Time'].dt.month
         df['Hour'] = df['Time'].dt.hour
+        df['Update'] = today
 
     else:
         # Handle the error

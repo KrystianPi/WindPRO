@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 
-def get_measurments(past_days):
+def get_measurments(station, past_days):
     df = pd.DataFrame()
     
     # Calculate the start and end dates for the past N days
@@ -23,7 +23,7 @@ def get_measurments(past_days):
         month = date.month
         year = date.year
 
-        url = f"http://www.wiatrkadyny.pl/rewa/wxwugraphs/graphd1a.php?theme=pepper&d={day}&m={month}&y={year}&w=900&h=350"
+        url = f"http://www.wiatrkadyny.pl/{station}/wxwugraphs/graphd1a.php?theme=pepper&d={day}&m={month}&y={year}&w=900&h=350"
 
         response = requests.get(url)
         if response.status_code == 200:
@@ -89,5 +89,7 @@ def get_measurments(past_days):
 
         else:
             print(f"Failed to fetch data from {url}")
+
+    df['Update'] = date.today()
 
     return df

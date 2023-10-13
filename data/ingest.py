@@ -3,14 +3,16 @@ from .measurments import get_measurments
 from .forecast import get_forecast
 from .config import get_config
 import pandas as pd
+from pathlib import Path
+import os
+import datetime
 
-def ingest_measurments(past_days):
-    # Measurments are used only to assess performance and retrain model every month. 
-    # When called it needs to feed every measurments from past month
-    table_name = 'measurments_rewa'
-    
+BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+
+def ingest_measurments(station, past_days):
+    # Measurments are used only to assess performance and retrain model every month.     
     # Get data
-    df = get_measurments(past_days)
+    df = get_measurments(station, past_days)
 
     # Get database url
     db_url = get_config()
@@ -18,12 +20,31 @@ def ingest_measurments(past_days):
     # Create an SQLAlchemy engine
     engine = create_engine(db_url)
 
-    # Insert the Pandas DataFrame into the MySQL table this will be later joined with predictions and used to measure performance 
-    df.to_sql(table_name, engine, if_exists='append', index=False)
+    # Write to the file (this will replace contents or create a new file)
+    filename = BASE_DIR / 'data' / 'logs' / f'last_ingest_measurments_{station}.txt'
+    
+    with open(filename, 'r') as f:
+        last_date = f.read().strip()
+    last_date = datetime.datetime.strptime(last_date, '%Y-%m-%d').date()
+    
+    print((datetime.date.today() - last_date).days)
+    
+    # Weekly update, prevent duplicates
+    if (datetime.date.today() - last_date).days < 7:
+        table_name = f'measurments_{station}_weekly'
+        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        print(f'Weekly measurments for {df["Time"]} ingested successfully!') 
+    elif (datetime.date.today() - last_date).days >= 7:
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        with open(filename, 'w') as f:
+            f.write(today)
+        table_name = f'measurments_{station}'
+        df.to_sql(table_name, engine, if_exists='append', index=False)  
+        print(f'Weekly measurments for {df["Time"]} ingested successfully and appended to main table!')   
 
 def ingest_forecast():
     # New forecast needs to be fed everyday because predictions for the current and next day will be made every day
-    table_name = 'forecast_rewa_temp'
+    table_name = f'forecast_temp'
     
     # Get data
     df = get_forecast()
@@ -43,8 +64,7 @@ def ingest_forecast():
 
 def ingest_hist_forecast(past_days):
     # Table containing all historical forecast
-    table_name = 'forecast_rewa'
-    
+
     # Get past week data
     df = get_forecast(past_days)
 
@@ -54,31 +74,28 @@ def ingest_hist_forecast(past_days):
     # Create an SQLAlchemy engine
     engine = create_engine(db_url)
 
-    # Insert the Pandas DataFrame into the MySQL table
-    try:
-        df.to_sql(table_name, engine, if_exists='append', index=False)
-        print(f'Forecast for {df["Time"]} ingested successfully!')   
-    except Exception as e:
-        print(f"Data type mismatch or other data error: {e}")
-
-def clean_duplicates(station):
-    db_url = get_config()
-
-    # Create an SQLAlchemy engine
-    engine = create_engine(db_url)
-
-    # Use the engine to connect to the database
-    connection = engine.connect()
+    # Write to the file (this will replace contents or create a new file)
+    filename = BASE_DIR / 'data' / 'logs' / f'last_ingest_forecast.txt'
     
-    query = f"SELECT * FROM forecast_{station}"
-
-    df = pd.read_sql(query, connection)
-
-    df.drop_duplicates(subset='Time', inplace=True)
-
-    df.to_sql(f'forecast_{station}', engine, if_exists='replace', index=False)
+    with open(filename, 'r') as f:
+        last_date = f.read().strip()
+    last_date = datetime.datetime.strptime(last_date, '%Y-%m-%d').date()
+    
+    print((datetime.date.today() - last_date).days)
+    
+    # Weekly update, prevent duplicates
+    if (datetime.date.today() - last_date).days < 7:
+        table_name = f'forecast_weekly'
+        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        print(f'Weekly forecast for {df["Time"]} ingested successfully!') 
+    elif (datetime.date.today() - last_date).days >= 7:
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        with open(filename, 'w') as f:
+            f.write(today)
+        table_name = f'forecast'
+        df.to_sql(table_name, engine, if_exists='append', index=False)  
+        print(f'Weekly forecast for {df["Time"]} ingested successfully and appended to main table!')  
 
 if __name__ == '__main__': 
     # ingest_measurments(14)
     ingest_hist_forecast()
-    # clean_duplicates('rewa')
