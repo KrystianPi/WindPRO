@@ -19,7 +19,7 @@ def get_forecast(past = False):
     params = {
         "latitude": LATIUDE,
         "longitude": LONGITUDE,
-        "hourly": "windspeed_10m,windgusts_10m,winddirection_10m",
+        "hourly": "windspeed_10m,windgusts_10m,winddirection_10m,temperature_2m,precipitation,cloudcover",
         "windspeed_unit": "kn",
         "timezone": "Europe/Berlin",
         "forecast_days": forecast_days,
@@ -35,11 +35,23 @@ def get_forecast(past = False):
         df = pd.DataFrame()
         # Access the specific data you need (e.g., windspeed, wind direction, and wind gusts)
         df['Time'] = pd.to_datetime(data['hourly']['time'])
-        df['Month'] = df['Time'].dt.month
-        df['Hour'] = df['Time'].dt.hour
         df['WindForecast'] = data["hourly"]["windspeed_10m"]
         df['GustForecast'] = data["hourly"]["winddirection_10m"]
         df['WindDirForecast'] = data["hourly"]["windgusts_10m"]
+        df['Temperature'] = data["hourly"]["temperature_2m"]
+        df['Precipitation'] = data["hourly"]["precipitation"]
+        df['Cloudcover'] = data["hourly"]["cloudcover"]
+
+        # Set the 'Time' column as the index
+        df.set_index('Time', inplace=True)
+
+        # Resample the data with a two-hour interval and apply mean aggregation
+        df = df.resample('2H').mean()
+
+        df.reset_index(inplace=True)
+
+        df['Month'] = df['Time'].dt.month
+        df['Hour'] = df['Time'].dt.hour
 
     else:
         # Handle the error
