@@ -12,7 +12,7 @@ def predict(station, model_name, version, RUN_ID = None):
     df_forecast = select_forecast(station,purpose='predict')
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     X = df_forecast[model.feature_names]
-    return(model.predict(X))
+    return model.predict(X)
 
 # Trigger Every Week
 def monitor(station, model_name, version, RUN_ID = None):
@@ -33,7 +33,7 @@ def monitor(station, model_name, version, RUN_ID = None):
     df_test.drop_duplicates(subset='Time', inplace=True)
 
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
-    model.model_evaluation(df_test)
+    return model.model_evaluation(df_test)
 
 # Trigger Every Month
 def retrain(station, model_name, version, RUN_ID = None):

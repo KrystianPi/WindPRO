@@ -131,6 +131,7 @@ class Model():
         test_data['Prediction'] = y_pred
         print(test_data)
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
+        return r2_score(y_test, y_pred)
 
     def load_model(self):
         # Load a trained model from a pickle file

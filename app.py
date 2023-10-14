@@ -1,25 +1,47 @@
 from fastapi import FastAPI
+import mlflow
 import uvicorn
 from main import predict, monitor, retrain
+import datetime
+
+today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
 
 app = FastAPI()
 
 @app.post("/predict")
-def api_predict(station: str = 'rewa', model_name: str = 'xgboost-8features-hpt', version: int = 3):
+def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per day """
-    predictions = predict(station, model_name, version)
+    try:
+        id = mlflow.create_experiment(experiment_name)
+    except:
+        id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+    run_name = f'pred_run_prod_{today}'
+    with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
+        predictions = predict(station, model_name, version, run.info.run_id)
     return {"message": "Prediction completed!", "predictions": predictions}
 
 @app.post("/monitor")
-def api_monitor(station: str = 'rewa', model_name: str = 'xgboost-8features-hpt', version: int = 3):
+def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per week """
-    monitor(station, model_name, version)
-    return {"message": "Monitor completed!"}
+    try:
+        id = mlflow.create_experiment(experiment_name)
+    except:
+        id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+    run_name = f'test_run_prod_{today}'
+    with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
+        r2 = monitor(station, model_name, version, run.info.run_id)
+    return {"message": "Monitor completed!", "r2 score": r2}
 
 @app.post("/retrain")
-def api_retrain(station: str = 'rewa', model_name: str = 'xgboost-8features-hpt', version: int = 3):
+def api_retrain(station: str = 'rewa',experiment_name: str = 'xgbo_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per month """
-    retrain(station, model_name, version)
+    try:
+        id = mlflow.create_experiment(experiment_name)
+    except:
+        id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+    run_name = f'retrain_run_prod_{today}'
+    with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
+        retrain(station, model_name, version, run.info.run_id)
     return {"message": "Retraining completed!"}
 
 if __name__ == "__main__":
