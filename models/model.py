@@ -41,7 +41,7 @@ class Model():
         connection = engine.connect()
 
         # Specify the SQL query to retrieve data from a table
-        query_forecast = f"SELECT * FROM forecast_{self.station}"
+        query_forecast = f"SELECT * FROM forecast"
         query_measurments = f"SELECT * FROM measurments_{self.station}"
 
         # Use Pandas to read data from the database into a DataFrame
@@ -74,9 +74,9 @@ class Model():
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
 
         self.params_grid = {
-         'max_depth': [2, 3, 4],
+         'max_depth': [2, 3],
          'learning_rate': [0.005,0.01, 0.1],
-         'n_estimators': [30, 50, 100,],
+         'n_estimators': [30, 50],
             }
         
         # Grid search
@@ -120,13 +120,16 @@ class Model():
     def predict(self, X):
         pred = self.model.predict(X)
         # Convert predictions to a suitable format (e.g., a Python list or dictionary)
-        print(pred)
+        X['Predicition'] = pred
+        print(X)
         return(pred)
 
     def model_evaluation(self, test_data):
         X_test = test_data[self.feature_names]
         y_test = test_data['WindSpeed']
         y_pred = self.model.predict(X_test)
+        test_data['Prediction'] = y_pred
+        print(test_data)
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
 
     def load_model(self):
