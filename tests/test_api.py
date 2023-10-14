@@ -5,7 +5,7 @@ def test_predict_endpoint():
     url = "http://127.0.0.1:8000/predict"
     params = {
         "station": "rewa",
-        "experiment_name":'xgb_hpt_cv_x1_prod',
+        "experiment_name":'xgb_hpt_cv_x1_testing',
         "model_name": "xgboost-8features-hpt",
         "version": 2
     }
@@ -23,7 +23,7 @@ def test_predict_endpoint():
     url = "http://127.0.0.1:8000/monitor"
     params = {
         "station": "rewa",
-        "experiment_name":'xgb_hpt_cv_x1_prod',
+        "experiment_name":'xgb_hpt_cv_x1_testing',
         "model_name": "xgboost-8features-hpt",
         "version": 2
     }
