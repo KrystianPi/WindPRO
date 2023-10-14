@@ -19,7 +19,7 @@ def test_predict_endpoint():
     assert isinstance(data['predictions'], list), "The 'predictions' key does not contain a list."
     assert all(isinstance(item, float) for item in data['predictions']), "Not all items in 'predictions' are floats."
 
-def test_predict_endpoint():
+def test_monitor_endpoint():
     url = "http://127.0.0.1:8000/monitor"
     params = {
         "station": "rewa",
