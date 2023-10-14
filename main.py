@@ -7,15 +7,15 @@ import sys
 import datetime
 
 # Trigger Everyday
-def predict(station, RUN_ID):
+def predict(station, model_name, version, RUN_ID = None):
     ingest_forecast()
     df_forecast = select_forecast(station,purpose='predict')
-    model = Model(station='rewa', RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
+    model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     X = df_forecast[model.feature_names]
     model.predict(X)
 
 # Trigger Every Week
-def monitor(station, RUN_ID):
+def monitor(station, model_name, version, RUN_ID = None):
     # Every run check is performed: 
     # If today - last update date in database is less then 7 days replace the week_temp database 
     # If today - last update date => 7 days take the week_temp and append to main 
@@ -32,14 +32,12 @@ def monitor(station, RUN_ID):
     # Double check on duplicates
     df_test.drop_duplicates(subset='Time', inplace=True)
 
-    print(df_test)
-
-    model = Model(station='rewa', RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
+    model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     model.model_evaluation(df_test)
 
 # Trigger Every Month
-def retrain(station, RUN_ID):
-    model = Model(station=station,RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
+def retrain(station, model_name, version, RUN_ID = None):
+    model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     model.get_train_data() 
     model.transform()  
     model.parameter_tuning() 
@@ -49,7 +47,8 @@ def retrain(station, RUN_ID):
 
 if __name__ == '__main__': 
     experiment_name = 'xgb_8features'
-    
+    model_name = 'xgboost-8features-hpt'
+    version = 3
     try:
         id = mlflow.create_experiment(experiment_name)
     except:
@@ -65,8 +64,8 @@ if __name__ == '__main__':
     
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run:  
         if sys.argv[1] == 'pred':
-            predict(station='rewa', RUN_ID=run.info.run_id)
+            predict(station='rewa', model_name=model_name, version=version, RUN_ID=run.info.run_id)
         elif sys.argv[1] == 'mon':
-            monitor(station='rewa', RUN_ID=run.info.run_id)
+            monitor(station='rewa', model_name=model_name, version=version, RUN_ID=run.info.run_id)
         elif sys.argv[1] == 'ret':
-            retrain(station='rewa', RUN_ID=run.info.run_id)
+            retrain(station='rewa', model_name=model_name, version=version, RUN_ID=run.info.run_id)
