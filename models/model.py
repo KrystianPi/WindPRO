@@ -27,8 +27,8 @@ class Model():
         self.id = RUN_ID 
         self.model_name = model_name
         self.version = version
-        self.feature_names = ['WindForecast', 'WindDirForecast', 'Month', 'GustForecast', 
-                        'Hour', 'Temperature', 'Cloudcover','Precipitation']   
+        self.feature_names = ['Month', 'Hour', 'WindForecast', 'GustForecast',	
+                              'WindDirForecast', 'Temperature', 'Precipitation', 'Cloudcover']   
         self.load_model()
 
     def get_train_data(self):
@@ -122,7 +122,7 @@ class Model():
         # Convert predictions to a suitable format (e.g., a Python list or dictionary)
         X['Predicition'] = pred
         print(X)
-        return(pred)
+        return(pred.tolist())
 
     def model_evaluation(self, test_data):
         X_test = test_data[self.feature_names]
