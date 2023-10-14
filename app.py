@@ -7,8 +7,8 @@ app = FastAPI()
 @app.post("/predict")
 def api_predict(station: str = 'rewa', model_name: str = 'xgboost-8features-hpt', version: int = 3):
     """ This will be executed once per day """
-    predict(station, model_name, version)
-    return {"message": "Prediction completed!"}
+    predictions = predict(station, model_name, version)
+    return {"message": "Prediction completed!", "predictions": predictions}
 
 @app.post("/monitor")
 def api_monitor(station: str = 'rewa', model_name: str = 'xgboost-8features-hpt', version: int = 3):

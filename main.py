@@ -12,7 +12,7 @@ def predict(station, model_name, version, RUN_ID = None):
     df_forecast = select_forecast(station,purpose='predict')
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     X = df_forecast[model.feature_names]
-    model.predict(X)
+    return(model.predict(X))
 
 # Trigger Every Week
 def monitor(station, model_name, version, RUN_ID = None):
@@ -48,7 +48,7 @@ def retrain(station, model_name, version, RUN_ID = None):
 if __name__ == '__main__': 
     experiment_name = 'xgb_8features'
     model_name = 'xgboost-8features-hpt'
-    version = 3
+    version = 2
     try:
         id = mlflow.create_experiment(experiment_name)
     except:
