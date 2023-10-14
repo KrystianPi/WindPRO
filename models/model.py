@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 import warnings
 
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
 import xgboost as xgb
@@ -69,9 +70,38 @@ class Model():
         self.X = self.df[self.feature_names]
         self.y = self.df['WindSpeed']
    
+    def parameter_tuning(self):
+        self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
+
+        self.params_grid = {
+         'max_depth': [2, 3, 4],
+         'learning_rate': [0.005,0.01, 0.1],
+         'n_estimators': [30, 50, 100,],
+            }
+        
+        # Grid search
+        xgb_regressor = xgb.XGBRegressor()
+        grid = GridSearchCV(xgb_regressor, self.params_grid, cv=self.k_fold)
+        grid.fit(self.X, self.y)
+
+        self.best_max_depth = grid.best_params_['max_depth']
+        self.best_learning_rate = grid.best_params_['learning_rate']
+        self.best_n_estimators = grid.best_params_['n_estimators']
+        # Add other best hyperparameters as needed
+
+        mlflow.log_param(f'best_max_depth', self.best_max_depth)
+        mlflow.log_param(f'best_learning_rate', self.best_learning_rate)
+        mlflow.log_param(f'best_n_estimators', self.best_n_estimators)
+        mlflow.log_param(f'param_grid', self.params_grid)
+
+        self.model = xgb.XGBRegressor(
+                                    max_depth=self.best_max_depth,
+                                    learning_rate=self.best_learning_rate,
+                                    n_estimators=self.best_n_estimators,
+                                    )
+        
     def k_fold_cross_validation(self):
         # Run k-fold cross validation
-        self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
         kfold_scores = cross_val_score(self.model, self.X, self.y, cv=self.k_fold)
 
         # Track metrics

@@ -42,7 +42,7 @@ def retrain(station, RUN_ID):
     model = Model(station=station,RUN_ID=RUN_ID, model_name="xgboost-8features-hpt", version=2)
     model.get_train_data() 
     model.transform()  
-    # model.parameter_tuning(params_grid) 
+    model.parameter_tuning() 
     model.k_fold_cross_validation()
     model.fit()
     model.save_model()
