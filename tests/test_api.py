@@ -34,5 +34,8 @@ def test_monitor_endpoint():
     data = response.json()
     # Assert that the 'predictions' key exists and contains a list of floats
     assert 'r2 score' in data, "The 'r2 score' key was not found in the response."
+    assert 'r2 score forecast' in data, "The 'r2 score forecast' key was not found in the response."
     assert isinstance(data['r2 score'], float), "The 'r2 score' is not float"
+    assert isinstance(data['r2 score forecast'], float), "The 'r2 score forecast' is not float"
     assert -float('inf') <= data['r2 score'] <= 1.0, "The 'r2 score' is not in the range [-inf, 1.0]"
+    assert -float('inf') <= data['r2 score forecast'] <= 1.0, "The 'r2 score forecast' is not in the range [-inf, 1.0]"

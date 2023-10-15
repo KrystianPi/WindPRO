@@ -126,12 +126,14 @@ class Model():
 
     def model_evaluation(self, test_data):
         X_test = test_data[self.feature_names]
+        y_forecast = test_data['WindForecast']
         y_test = test_data['WindSpeed']
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
         print(test_data)
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
-        return r2_score(y_test, y_pred)
+        mlflow.log_metric(f"forecast_accuracy", r2_score(y_forecast, y_pred))
+        return r2_score(y_test, y_pred), r2_score(y_forecast, y_pred)
 
     def load_model(self):
         # Load a trained model from a pickle file
