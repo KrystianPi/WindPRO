@@ -79,6 +79,7 @@ def get_measurments(station, past_days):
             }
 
             # Concat to the global dataframe, skip if data corrupted for current day
+            # FIXME need to figure out something not to skip so many days (average?)
             try:
                 df_i = pd.DataFrame(data)
                 df = pd.concat([df,df_i])
