@@ -17,7 +17,6 @@ database_name = postgresql_config.get('database_name', 'your_database')
 port = postgresql_config.get('port', 'your_port')
 
 # Connect to the database
-conn = None
 try:
     conn = psycopg2.connect(
         host=host,
@@ -27,20 +26,5 @@ try:
         port=port
     )
 
-    # Create a cursor object using the connection
-    cur = conn.cursor()
-
-    # Execute a simple query
-    cur.execute('SELECT version();')
-    version = cur.fetchone()
-    print(f"Connected to - {version[0]}")
-
 except Exception as e:
     print(f"Error: {e}")
-
-finally:
-    # Close the connection and cursor
-    if cur:
-        cur.close()
-    if conn:
-        conn.close()
