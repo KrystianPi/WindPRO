@@ -32,23 +32,14 @@ def get_measurments(station, past_days):
             # Regex to retrive data from html
             patternWindSpeed = r'var dAvgWS\s*=\s*(\[.*?\]);'
             patternWindGust = r'var dGustWS\s*=\s*(\[.*?\]);'
-            patternTemp = r'var dTemp\s*=\s*(\[.*?\]);'
-            patternWindDir = r'var dWindDir\s*=\s*(\[.*?\]);'
-            patternBaro = r'var dBaro\s*=\s*(\[.*?\]);'
 
             # Use re.findall to find all matches in the HTML content
             WindSpeed = re.findall(patternWindSpeed, str(soup.contents), re.IGNORECASE | re.DOTALL)
             WindGust = re.findall(patternWindGust, str(soup.contents), re.IGNORECASE | re.DOTALL)
-            Temp = re.findall(patternTemp, str(soup.contents), re.IGNORECASE | re.DOTALL)
-            WindDir = re.findall(patternWindDir, str(soup.contents), re.IGNORECASE | re.DOTALL)
-            Baro = re.findall(patternBaro, str(soup.contents), re.IGNORECASE | re.DOTALL)
 
             # Remove the trailing comma to make it a valid JSON-like format
             WindSpeed = ast.literal_eval(WindSpeed[0].rstrip(','))[:-1]
             WindGust = ast.literal_eval(WindGust[0].rstrip(','))[:-1]
-            Temp = ast.literal_eval(Temp[0].rstrip(','))[:-1]
-            WindDir = ast.literal_eval(WindDir[0].rstrip(','))[:-1]
-            Baro = ast.literal_eval(Baro[0].rstrip(','))[:-1]
 
             # Convert from m/s to knots
             WindSpeed = [np.round(speed * 1.94384449,2) for speed in WindSpeed]
@@ -68,18 +59,22 @@ def get_measurments(station, past_days):
                     minute = 0
                     hour += 1
 
+            # Find the minimum length between datetime_values, WindSpeed, and WindGust
+            min_len = min(len(datetime_values), len(WindSpeed), len(WindGust))
+
+            # Trim all the lists to the minimum length
+            datetime_values = datetime_values[:min_len]
+            WindSpeed = WindSpeed[:min_len]
+            WindGust = WindGust[:min_len]
+
             # Create a DataFrame
             data = {
                 'Time': datetime_values,
                 'WindSpeed': WindSpeed,
                 'WindGust': WindGust,
-                'Temp': Temp,
-                'WindDir': WindDir,
-                'Baro': Baro
             }
 
             # Concat to the global dataframe, skip if data corrupted for current day
-            # FIXME need to figure out something not to skip so many days (average?)
             try:
                 df_i = pd.DataFrame(data)
                 df = pd.concat([df,df_i])
@@ -94,3 +89,6 @@ def get_measurments(station, past_days):
     df['Update'] = date.today()
 
     return df
+
+if __name__ == '__main__': 
+    get_measurments(station='rewa', past_days=31)
