@@ -107,6 +107,7 @@ class Model():
         # Track metrics
         mlflow.log_metric(f"average_accuracy", kfold_scores.mean())
         mlflow.log_metric(f"std_accuracy", kfold_scores.std())
+        return kfold_scores.mean()
 
     def fit(self):
         self.model.fit(self.X, self.y)

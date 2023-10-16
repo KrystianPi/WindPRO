@@ -41,9 +41,10 @@ def retrain(station, model_name, version, RUN_ID = None):
     model.get_train_data() 
     model.transform()  
     model.parameter_tuning() 
-    model.k_fold_cross_validation()
+    train_cv_accuracy = model.k_fold_cross_validation()
     model.fit()
     model.save_model()
+    return train_cv_accuracy
 
 if __name__ == '__main__': 
     experiment_name = 'xgb_8features'

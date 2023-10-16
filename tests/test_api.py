@@ -39,3 +39,21 @@ def test_monitor_endpoint():
     assert isinstance(data['r2 score forecast'], float), "The 'r2 score forecast' is not float"
     assert -float('inf') <= data['r2 score'] <= 1.0, "The 'r2 score' is not in the range [-inf, 1.0]"
     assert -float('inf') <= data['r2 score forecast'] <= 1.0, "The 'r2 score forecast' is not in the range [-inf, 1.0]"
+
+def test_retrain_endpoint():
+    url = "http://127.0.0.1:8000/retrain"
+    params = {
+        "station": "rewa",
+        "experiment_name":'xgb_hpt_cv_x1_testing',
+        "model_name": "xgboost-8features-hpt",
+        "version": 2
+    }
+
+    response = requests.post(url, params=params)
+    assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
+
+    data = response.json()
+    # Assert that the 'predictions' key exists and contains a list of floats
+    assert 'Train CV Accuracy' in data, "The 'Train CV Accuracy' key was not found in the response."
+    assert isinstance(data['Train CV Accuracy'], float), "The 'Train CV Accuracy' is not float"
+    assert 0 <= data['Train CV Accuracy'] <= 1.0, "The 'Train CV Accuracy' is not in the range [0.0, 1.0]"

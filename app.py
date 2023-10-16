@@ -41,8 +41,8 @@ def api_retrain(station: str = 'rewa',experiment_name: str = 'xgbo_hpt_cv_x1_pro
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'retrain_run_prod_{today}'
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
-        retrain(station, model_name, version, run.info.run_id)
-    return {"message": "Retraining completed!"}
+        train_cv_accuracy = retrain(station, model_name, version, run.info.run_id)
+    return {"message": "Retraining completed!", "Train CV Accuracy": train_cv_accuracy}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
