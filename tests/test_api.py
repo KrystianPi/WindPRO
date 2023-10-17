@@ -2,7 +2,7 @@ import requests
 
 
 def test_predict_endpoint():
-    url = "http://127.0.0.1:8000/predict"
+    url = "http://0.0.0.0:8000/predict"
     params = {
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
@@ -20,7 +20,7 @@ def test_predict_endpoint():
     assert all(isinstance(item, float) for item in data['predictions']), "Not all items in 'predictions' are floats."
 
 def test_monitor_endpoint():
-    url = "http://127.0.0.1:8000/monitor"
+    url = "http://0.0.0.0:8000/monitor"
     params = {
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
@@ -41,7 +41,7 @@ def test_monitor_endpoint():
     assert -float('inf') <= data['r2 score forecast'] <= 1.0, "The 'r2 score forecast' is not in the range [-inf, 1.0]"
 
 def test_retrain_endpoint():
-    url = "http://127.0.0.1:8000/retrain"
+    url = "http://0.0.0.0:8000/retrain"
     params = {
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
