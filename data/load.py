@@ -13,9 +13,9 @@ def select_forecast(station, purpose='predict'):
     connection = engine.connect()
     
     if purpose == 'predict':
-        query = f"SELECT * FROM forecast_{station}_temp"
+        query = f"SELECT * FROM forecast_temp"
     if purpose == 'test':
-        query = f"SELECT * FROM forecast_{station} WHERE Time >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        query = f"SELECT * FROM forecast WHERE Time >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
 
     # Use Pandas to read data from the database into a DataFrame
     df = pd.read_sql(query, connection)
