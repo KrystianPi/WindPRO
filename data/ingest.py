@@ -2,9 +2,7 @@ from sqlalchemy import create_engine
 from .measurments import get_measurments
 from .forecast import get_forecast
 from .config import get_config
-import pandas as pd
 from pathlib import Path
-import os
 import datetime
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
