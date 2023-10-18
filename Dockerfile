@@ -5,19 +5,16 @@ FROM python:3.9
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY requirements.txt .
+COPY . /app
 
 # Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code to the working directory
-COPY . .
+# Define environment variable for MLflow server if needed
+#ENV MLFLOW_TRACKING_URI http://your_mlflow_server:5000
 
-# Expose the port on which the application will run
-EXPOSE 8080
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
 
-# Define environment variable
-ENV NAME World
-
-# Run FastAPI when the container launches
+# Run app.py when the container launches
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
