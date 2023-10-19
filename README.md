@@ -2,6 +2,9 @@
 
 Welcome to the WindSurfPro repository! WindSurfPro is an exciting project aimed at enhancing wind forecasts for local windsurfing spots using machine learning. This application runs on an AWS server and serves as an excellent learning opportunity for those interested in SQL, cloud services, machine learning, MLOps (Machine Learning Operations), CI/CD (Continuous Integration and Continuous Deployment), and more.
 
+## Architecture
+<img width="933" alt="Screenshot 2023-10-19 at 11 46 45" src="https://github.com/KrystianPi/WindPRO/assets/38494173/eaa53294-02f9-432e-942d-45b275d9f3c3">
+
 ## Features
 
 - **Machine Learning-Enhanced Wind Forecasts**: WindSurfPro uses historical measured wind data to train machine learning models that provide more accurate and reliable wind forecasts for local windsurfing spots. By analyzing patterns and trends, the app can predict wind conditions with improved precision.
