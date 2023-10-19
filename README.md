@@ -29,8 +29,3 @@ Contributions to WindSurfPro are welcome! Whether you want to add new features, 
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-WindSurfPro wouldn't be possible without the support of the open-source community and the various technologies and tools it relies on. Special thanks to AWS, machine learning libraries, CI/CD platforms, and language models for their contributions to this project.
-
-Enjoy your journey of learning and exploration with WindSurfPro! If you have any questions or feedback, please feel free to reach out through the repository's issue tracker.
