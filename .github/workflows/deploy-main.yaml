@@ -22,7 +22,7 @@ jobs:
           echo "$PRIVATE_KEY_BASE64" | base64 -d > private_key.pem
           chmod 600 private_key.pem
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << EOF
-            cd /path/to/your/repository
+            cd /windpro
             git pull origin main
             docker-compose up -d
           EOF
