@@ -23,7 +23,7 @@ jobs:
           chmod 600 private_key.pem
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << EOF
             cd windpro
-            git pull origin main
+            git pull origin main 
             docker-compose up -d
           EOF
           rm -f private_key.pem
