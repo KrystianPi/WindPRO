@@ -24,6 +24,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << EOF
             cd windpro
             git pull origin main 
+            sudo service docker start
             docker-compose up -d
           EOF
           rm -f private_key.pem
