@@ -165,3 +165,5 @@ config.json
 mlruns
 mysql/windpro.sql
 WindPro.pem
+mlflow_command.txt
+awscli-bundle

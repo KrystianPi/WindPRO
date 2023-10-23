@@ -10,7 +10,8 @@ services:
     depends_on:
       - mysql-db
     environment:
-      DATABASE_URL: mysql+pymysql://root:password@mysql-db:3306/windpro
+      DATABASE_URL: "mysql+pymysql://root:password@mysql-db:3306/windpro"
+      EC2_TRACKING_SERVER_HOST: "${EC2_TRACKING_SERVER_HOST}"
     volumes:
       - /Users/krystianpietrzak/Documents/ML/WindPRO/mlruns:/app/mlruns
 

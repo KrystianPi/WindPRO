@@ -1,8 +1,15 @@
 from fastapi import FastAPI
 import mlflow
+from mlflow.tracking import MlflowClient
 import uvicorn
 from main import predict, monitor, retrain
 import datetime
+import os
+
+TRACKING_SERVER_HOST = os.environ.get("EC2_TRACKING_SERVER_HOST")
+print(f"Tracking Server URI: '{TRACKING_SERVER_HOST}'")
+mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
+
 
 today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
 

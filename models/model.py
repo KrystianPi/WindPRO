@@ -29,7 +29,11 @@ class Model():
         self.version = version
         self.feature_names = ['Month', 'Hour', 'WindForecast', 'GustForecast',	
                               'WindDirForecast', 'Temperature', 'Precipitation', 'Cloudcover']   
-        self.load_model()
+        try:
+            self.load_model()
+        except:
+            print('Model not found initiating default model and training')
+            
 
     def get_train_data(self):
         db_url = get_config()
