@@ -5,18 +5,14 @@ import os
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 def get_config():
-    # Read the MySQL configuration from the JSON file
-    with open(os.path.join(BASE_DIR, 'config.json'), 'r') as config_file:
-        config = json.load(config_file)
-
-    # Extract MySQL connection details
-    mysql_config = config.get('mysql', {})
-    username = mysql_config.get('username', 'default_username')
-    password = mysql_config.get('password', 'default_password')
-    host = mysql_config.get('host', 'localhost')
-    database_name = mysql_config.get('database_name', 'your_database')
+    # Parameters for the RDS PostgreSQL instance
+    PG_HOST = os.environ.get('PG_HOST')
+    PG_PORT = os.environ.get('PG_PORT')
+    PG_DATABASE = os.environ.get('PG_DATABASE')
+    PG_USER = os.environ.get('PG_USER')
+    PG_PASSWORD = os.environ.get('PG_PASSWORD')
 
     # Create the MySQL database connection string
-    db_url = f"mysql+mysqlconnector://{username}:{password}@{host}/{database_name}"
+    db_url = f'postgresql+psycopg2://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}'
     
     return db_url

@@ -19,10 +19,11 @@ app = FastAPI()
 def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per day """
     try:
-        id = mlflow.create_experiment(experiment_name)
+        id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'pred_run_prod_{today}'
+    print(f"default artifacts URI: '{mlflow.get_artifact_uri()}'")
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         predictions = predict(station, model_name, version, run.info.run_id)
     return {"message": "Prediction completed!", "predictions": predictions}
@@ -31,10 +32,11 @@ def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
 def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per week """
     try:
-        id = mlflow.create_experiment(experiment_name)
+        id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'test_run_prod_{today}'
+    print(f"default artifacts URI: '{mlflow.get_artifact_uri()}'")
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         r2_test, r2_forecast = monitor(station, model_name, version, run.info.run_id)
     return {"message": "Monitor completed!", "r2 score": r2_test, "r2 score forecast": r2_forecast}
@@ -43,10 +45,11 @@ def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
 def api_retrain(station: str = 'rewa',experiment_name: str = 'xgbo_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per month """
     try:
-        id = mlflow.create_experiment(experiment_name)
+        id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'retrain_run_prod_{today}'
+    print(f"default artifacts URI: '{mlflow.get_artifact_uri()}'")
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         train_cv_accuracy = retrain(station, model_name, version, run.info.run_id)
     return {"message": "Retraining completed!", "Train CV Accuracy": train_cv_accuracy}

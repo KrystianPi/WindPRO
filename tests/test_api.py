@@ -1,13 +1,12 @@
 import requests
 
-
 def test_predict_endpoint():
     url = "http://0.0.0.0:8000/predict"
     params = {
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
         "model_name": "xgboost-8features-hpt",
-        "version": 2
+        "version": 1
     }
 
     response = requests.post(url, params=params)
@@ -25,7 +24,7 @@ def test_monitor_endpoint():
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
         "model_name": "xgboost-8features-hpt",
-        "version": 2
+        "version": 1
     }
 
     response = requests.post(url, params=params)
@@ -46,7 +45,7 @@ def test_retrain_endpoint():
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing',
         "model_name": "xgboost-8features-hpt",
-        "version": 2
+        "version": 1
     }
 
     response = requests.post(url, params=params)

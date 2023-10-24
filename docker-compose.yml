@@ -7,20 +7,25 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    depends_on:
-      - mysql-db
+    # depends_on:
+    #   - mysql-db
     environment:
       DATABASE_URL: "mysql+pymysql://root:password@mysql-db:3306/windpro"
       EC2_TRACKING_SERVER_HOST: "${EC2_TRACKING_SERVER_HOST}"
+      PG_HOST: "${PG_HOST}"
+      PG_PORT: "${PG_PORT}"
+      PG_DATABASE: "${PG_DATABASE}"
+      PG_USER: "${PG_USER}"
+      PG_PASSWORD: "${PG_PASSWORD}"
     volumes:
       - /Users/krystianpietrzak/Documents/ML/WindPRO/mlruns:/app/mlruns
 
-  mysql-db:
-    build: 
-      context: ./mysql
-      dockerfile: Dockerfile
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_DATABASE: wind_pro
-      MYSQL_ROOT_PASSWORD: password
+  # mysql-db:
+  #   build: 
+  #     context: ./mysql
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_DATABASE: wind_pro
+  #     MYSQL_ROOT_PASSWORD: password

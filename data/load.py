@@ -15,7 +15,7 @@ def select_forecast(station, purpose='predict'):
     if purpose == 'predict':
         query = f"SELECT * FROM forecast_temp"
     if purpose == 'test':
-        query = f"SELECT * FROM forecast WHERE Time >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        query = 'SELECT * FROM forecast WHERE "Time" >= NOW() - INTERVAL \'7 days\';'
 
     # Use Pandas to read data from the database into a DataFrame
     df = pd.read_sql(query, connection)
@@ -38,7 +38,7 @@ def select_measurments(station, purpose='test'):
     if purpose == 'retrain':
         query = f"SELECT * FROM measurments_{station}"
     if purpose == 'test':
-        query = f"SELECT * FROM measurments_{station} WHERE Time >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        query = f'SELECT * FROM measurments_{station} WHERE "Time" >= NOW() - INTERVAL \'7 days\';'
 
     df = pd.read_sql(query, connection)
 
