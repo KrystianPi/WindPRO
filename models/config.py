@@ -1,8 +1,5 @@
-import json
 from pathlib import Path
 import os
-
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 def get_config():
     # Parameters for the RDS PostgreSQL instance
