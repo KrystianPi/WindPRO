@@ -6,7 +6,7 @@ def test_predict_endpoint():
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing_aws3',
         "model_name": "xgboost-8features-hpt",
-        "version": 5
+        "version": 6
     }
 
     response = requests.post(url, params=params)
@@ -24,7 +24,7 @@ def test_monitor_endpoint():
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing_aws3',
         "model_name": "xgboost-8features-hpt",
-        "version": 5
+        "version": 6
     }
 
     response = requests.post(url, params=params)
@@ -45,7 +45,7 @@ def test_retrain_endpoint():
         "station": "rewa",
         "experiment_name":'xgb_hpt_cv_x1_testing_aws3',
         "model_name": "xgboost-8features-hpt",
-        "version": 5
+        "version": 6
     }
 
     response = requests.post(url, params=params)
