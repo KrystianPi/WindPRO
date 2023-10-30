@@ -21,6 +21,7 @@ services:
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET}"
     volumes:
       - /Users/krystianpietrzak/Documents/ML/WindPRO/mlruns:/app/mlruns
+    mem_limit: 280m
 
   # mysql-db:
   #   build: 
