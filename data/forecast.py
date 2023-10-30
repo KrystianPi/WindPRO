@@ -36,8 +36,8 @@ def get_forecast(past_days = 0):
         # Access the specific data you need (e.g., windspeed, wind direction, and wind gusts)
         df['Time'] = pd.to_datetime(data['hourly']['time'])
         df['WindForecast'] = data["hourly"]["windspeed_10m"]
-        df['GustForecast'] = data["hourly"]["winddirection_10m"]
-        df['WindDirForecast'] = data["hourly"]["windgusts_10m"]
+        df['GustForecast'] = data["hourly"]["windgusts_10m"]
+        df['WindDirForecast'] = data["hourly"]["winddirection_10m"]
         df['Temperature'] = data["hourly"]["temperature_2m"]
         df['Precipitation'] = data["hourly"]["precipitation"]
         df['Cloudcover'] = data["hourly"]["cloudcover"]
