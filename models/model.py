@@ -31,8 +31,8 @@ class Model():
                               'WindDirForecast', 'Temperature', 'Precipitation', 'Cloudcover']   
         try:
             self.load_model()
-        except:
-            print('Model not found initiating default model and training')
+        except Exception as e:
+            print(f'Model not found initiating default model and training: {str(e)}')
             
 
     def get_train_data(self):
@@ -117,9 +117,11 @@ class Model():
         self.model.fit(self.X, self.y)
 
     def save_model(self):
-        mlflow.register_model(
-        f"runs:/{self.id}/sklearn-model", "xgboost-8features-hpt"
-        )
+        #mlflow.register_model(f"s3://mlflow-artifacts-krystianpi/mlflow/{self.id}", "xgboost-8features-hpt")
+        mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", "xgboost-8features-hpt")
+        # mlflow.register_model(
+        # f"runs:/{self.id}/sklearn-model", "xgboost-8features-hpt"
+        # )
         mlflow.sklearn.log_model(self.model, "sklearn-model")
 
     def predict(self, X):
@@ -135,10 +137,10 @@ class Model():
         y_test = test_data['WindSpeed']
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
-        print(test_data)
+        print(test_data[['Time','WindForecast','WindSpeed','Prediction']])
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
-        mlflow.log_metric(f"forecast_accuracy", r2_score(y_forecast, y_pred))
-        return r2_score(y_test, y_pred), r2_score(y_forecast, y_pred)
+        mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
+        return r2_score(y_test, y_forecast), r2_score(y_test, y_forecast)
 
     def load_model(self):
         # Load a trained model from a pickle file
