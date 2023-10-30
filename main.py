@@ -5,6 +5,7 @@ import pandas as pd
 import mlflow
 import sys
 import datetime
+import os
 
 # Trigger Everyday
 def predict(station, model_name, version, RUN_ID = None):
@@ -27,7 +28,7 @@ def monitor(station, model_name, version, RUN_ID = None):
     
     df_test = pd.merge(df_forecast, df_measurments, how='inner', on='Time')
 
-    df_test.dropna(inplace=True)
+    df_test.dropna(subset='WindSpeed', inplace=True)
 
     # Double check on duplicates
     df_test.drop_duplicates(subset='Time', inplace=True)
@@ -47,11 +48,14 @@ def retrain(station, model_name, version, RUN_ID = None):
     return train_cv_accuracy
 
 if __name__ == '__main__': 
-    experiment_name = 'xgb_8features'
+    TRACKING_SERVER_HOST = os.environ.get("EC2_TRACKING_SERVER_HOST")
+    print(f"Tracking Server URI: '{TRACKING_SERVER_HOST}'")
+    mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
+    experiment_name = 'xgb_8features_local_testing'
     model_name = 'xgboost-8features-hpt'
-    version = 2
+    version = 5
     try:
-        id = mlflow.create_experiment(experiment_name)
+        id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     
