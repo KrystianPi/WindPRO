@@ -20,8 +20,10 @@ def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
     """ This will be executed once per day """
     print(f'Running a prediction for {station}, experiment name: {experiment_name} with model {model_name} v{version}.')
     try:
+        print('Trying to create an experiment...')
         id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
+        print(f'Experiment {experiment_name} exists')
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'pred_run_prod_{today}'
     print(f'Run name: {run_name}')
