@@ -21,11 +21,7 @@ services:
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET}"
     volumes:
       - /Users/krystianpietrzak/Documents/ML/WindPRO/mlruns:/app/mlruns
-    deploy:
-      resources:
-        limits:
-          memory: 280M
-
+    memory: 280m
 
   # mysql-db:
   #   build: 
