@@ -7,8 +7,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    # depends_on:
-    #   - mysql-db
     environment:
       DATABASE_URL: "mysql+pymysql://root:password@mysql-db:3306/windpro"
       EC2_TRACKING_SERVER_HOST: "${EC2_TRACKING_SERVER_HOST}"
@@ -19,6 +17,4 @@ services:
       PG_PASSWORD: "${PG_PASSWORD}"
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY}"
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET}"
-    volumes:
-      - /Users/krystianpietrzak/Documents/ML/WindPRO/mlruns:/app/mlruns
-    mem_limit: 280m
+    mem_limit: 200m
