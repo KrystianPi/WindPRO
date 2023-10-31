@@ -18,11 +18,13 @@ app = FastAPI()
 @app.post("/predict")
 def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
     """ This will be executed once per day """
+    print(f'Running a prediction for {station}, experiment name: {experiment_name} with model {model_name} v{version}.')
     try:
         id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
         id = mlflow.get_experiment_by_name(experiment_name).experiment_id
     run_name = f'pred_run_prod_{today}'
+    print(f'Run name: {run_name}')
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         predictions = predict(station, model_name, version, run.info.run_id)
     return {"message": "Prediction completed!", "predictions": predictions}
