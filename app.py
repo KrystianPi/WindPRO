@@ -29,6 +29,7 @@ def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
     print(f'Run name: {run_name}')
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         predictions = predict(station, model_name, version, run.info.run_id)
+    print(f'Predictions: {predictions}')
     return {"message": "Prediction completed!", "predictions": predictions}
 
 @app.post("/monitor")
