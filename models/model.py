@@ -140,7 +140,7 @@ class Model():
         print(test_data[['Time','WindForecast','WindSpeed','Prediction']])
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
         mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
-        return r2_score(y_test, y_forecast), r2_score(y_test, y_forecast)
+        return r2_score(y_test, y_pred), r2_score(y_test, y_forecast)
 
     def load_model(self):
         # Load a trained model from a pickle file
