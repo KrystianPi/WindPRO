@@ -24,9 +24,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << EOF
             cd windpro
             git pull origin main 
+            docker-compose down
             docker container prune -f
             docker image prune -f
-            docker-compose down
             docker-compose build
             docker-compose up -d
           EOF
