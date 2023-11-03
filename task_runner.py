@@ -19,15 +19,15 @@ PARAMS = {
 }
 
 def call_predict():
-    response = requests.post(f'{EC2_ENDPOINT}/predict')
+    response = requests.post(f'{EC2_ENDPOINT}/predict', params=PARAMS)
     print(response.text)
 
 def call_monitor():
-    response = requests.post(f'{EC2_ENDPOINT}/monitor')
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', params=PARAMS)
     print(response.text)
 
 def call_retrain():
-    response = requests.post(f'{EC2_ENDPOINT}/retrain')
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', params=PARAMS)
     print(response.text)
 
 if __name__ == "__main__":
