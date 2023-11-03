@@ -53,8 +53,12 @@ def api_predict(params: PredictionParams):
     return {"message": "Prediction completed!", "predictions": predictions, "time": time}
 
 @app.post("/monitor")
-def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
+def api_monitor(params: PredictionParams):
     """ This will be executed once per week """
+    station = params.station
+    experiment_name = params.experiment_name
+    model_name = params.model_name
+    version = params.version
     try:
         id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:
@@ -65,8 +69,12 @@ def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
     return {"message": "Monitor completed!", "r2 score": r2_test, "r2 score forecast": r2_forecast}
 
 @app.post("/retrain")
-def api_retrain(station: str = 'rewa',experiment_name: str = 'xgbo_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
+def api_retrain(params: PredictionParams):
     """ This will be executed once per month """
+    station = params.station
+    experiment_name = params.experiment_name
+    model_name = params.model_name
+    version = params.version
     try:
         id = mlflow.create_experiment(experiment_name, artifact_location="s3://mlflow-artifacts-krystianpi")
     except:

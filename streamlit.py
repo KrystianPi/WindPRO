@@ -27,6 +27,9 @@ query = 'SELECT * FROM current_pred_rewa'
 
 df = pd.read_sql(query, connection)
 
+connection.close()
+
+
 # # Color scale function
 # def color_scale(val):
 #     color = 'red' if val > 35 else 'orange' if val > 25 else 'green' if val > 10 else 'blue'

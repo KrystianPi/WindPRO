@@ -30,13 +30,16 @@ query = 'select * from model_versions'
 
 df = pd.read_sql(query, connection)
 
+max_version = df['version'].max()
 
 PARAMS = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt",
-    "version": 1  
+    "version": max_version
 }
+
+connection.close()
 
 def call_predict():
     response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS)
