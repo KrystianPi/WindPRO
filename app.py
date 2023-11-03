@@ -28,9 +28,9 @@ def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
     run_name = f'pred_run_prod_{today}'
     print(f'Run name: {run_name}')
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
-        predictions = predict(station, model_name, version, run.info.run_id)
+        predictions, time = predict(station, model_name, version, run.info.run_id)
     print(f'Predictions: {predictions}')
-    return {"message": "Prediction completed!", "predictions": predictions}
+    return {"message": "Prediction completed!", "predictions": predictions, "time": time}
 
 @app.post("/monitor")
 def api_monitor(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):

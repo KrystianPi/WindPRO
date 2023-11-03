@@ -12,8 +12,9 @@ def predict(station, model_name, version, RUN_ID = None):
     ingest_forecast()
     df_forecast = select_forecast(station,purpose='predict')
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
+    time = df_forecast['Time'].tolist()
     X = df_forecast[model.feature_names]
-    return model.predict(X)
+    return model.predict(X), time
 
 # Trigger Every Week
 def monitor(station, model_name, version, RUN_ID = None):
