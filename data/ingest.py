@@ -92,7 +92,19 @@ def ingest_hist_forecast(past_days):
             f.write(today)
         table_name = f'forecast'
         df.to_sql(table_name, engine, if_exists='append', index=False)  
-        print(f'Weekly forecast for {df["Time"]} ingested successfully and appended to main table!')  
+        print(f'Weekly forecast for {df["Time"]} ingested successfully and appended to main table!') 
+
+def ingest_predictions_temp(station, pred):
+    table_name = f'current_pred_{station}'
+    
+    # Get database url
+    db_url = get_config()
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+
+    pred.to_sql(table_name, engine, if_exists='replace', index=False)
+    print(f'Prediction for {station} ingested successfully!')
 
 if __name__ == '__main__': 
     # ingest_measurments(14)

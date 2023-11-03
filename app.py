@@ -2,7 +2,9 @@ from fastapi import FastAPI
 import mlflow
 from mlflow.tracking import MlflowClient
 import uvicorn
+import pandas as pd
 from main import predict, monitor, retrain
+from data.ingest import ingest_predictions_temp
 import datetime
 import os
 
@@ -30,6 +32,13 @@ def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod
     with mlflow.start_run(experiment_id=id ,run_name=run_name) as run: 
         predictions, time = predict(station, model_name, version, run.info.run_id)
     print(f'Predictions: {predictions}')
+
+    df = pd.DataFrame()
+    df['Time'] = time
+    df['Wind'] = predictions
+
+    ingest_predictions_temp(station=station, pred=df)
+
     return {"message": "Prediction completed!", "predictions": predictions, "time": time}
 
 @app.post("/monitor")
