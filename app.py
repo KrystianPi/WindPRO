@@ -7,19 +7,30 @@ from main import predict, monitor, retrain
 from data.ingest import ingest_predictions_temp
 import datetime
 import os
+from pydantic import BaseModel
+
+class PredictionParams(BaseModel):
+    station: str
+    experiment_name: str
+    model_name: str
+    version: int
 
 TRACKING_SERVER_HOST = os.environ.get("EC2_TRACKING_SERVER_HOST")
 print(f"Tracking Server URI: '{TRACKING_SERVER_HOST}'")
 mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
-
 
 today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
 
 app = FastAPI()
 
 @app.post("/predict")
-def api_predict(station: str = 'rewa',experiment_name: str = 'xgb_hpt_cv_x1_prod', model_name: str = 'xgboost-8features-hpt', version: int = 2):
+def api_predict(params: PredictionParams):
     """ This will be executed once per day """
+    station = params.station
+    experiment_name = params.experiment_name
+    model_name = params.model_name
+    version = params.version
+
     print(f'Running a prediction for {station}, experiment name: {experiment_name} with model {model_name} v{version}.')
     try:
         print('Trying to create an experiment...')
