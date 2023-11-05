@@ -54,16 +54,16 @@ class Model():
 
         connection.close()
 
-    def transform(self):
+    def transform(self, df_measurments, df_forecast, mode='base'):
         # Set the 'Time' column as the index
-        self.df_measurments.set_index('Time', inplace=True)
+        df_measurments.set_index('Time', inplace=True)
 
         # Resample the data with a two-hour interval and apply mean aggregation
-        self.df_measurments = self.df_measurments.resample('2H').mean()
+        df_measurments = df_measurments.resample('2H').mean()
 
-        self.df_measurments.reset_index(inplace=True)
+        df_measurments.reset_index(inplace=True)
 
-        df = pd.merge(left=self.df_forecast, right=self.df_measurments, on='Time', how='inner')
+        df = pd.merge(left=df_forecast, right=df_measurments, on='Time', how='inner')
 
         df.dropna(inplace=True)
 
@@ -72,7 +72,10 @@ class Model():
         
         # Features and labels split
         self.X = self.df[self.feature_names]
-        self.y = self.df['WindSpeed']
+        if mode == 'base':
+            self.y = self.df['WindSpeed']
+        elif mode =='gust':
+            self.y = self.df['WindGust']
    
     def parameter_tuning(self):
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -118,7 +121,7 @@ class Model():
 
     def save_model(self):
         #mlflow.register_model(f"s3://mlflow-artifacts-krystianpi/mlflow/{self.id}", "xgboost-8features-hpt")
-        mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", "xgboost-8features-hpt")
+        mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", self.model_name)
         # mlflow.register_model(
         # f"runs:/{self.id}/sklearn-model", "xgboost-8features-hpt"
         # )
@@ -131,10 +134,14 @@ class Model():
         print(X)
         return(pred.tolist())
 
-    def model_evaluation(self, test_data):
+    def model_evaluation(self, test_data, mode='base'):
         X_test = test_data[self.feature_names]
-        y_forecast = test_data['WindForecast']
-        y_test = test_data['WindSpeed']
+        if mode == 'base':
+            y_forecast = test_data['WindForecast']
+            y_test = test_data['WindSpeed']
+        elif mode == 'gust':
+            y_forecast = test_data['GustForecast']
+            y_test = test_data['WindGust']
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
         print(test_data[['Time','WindForecast','WindSpeed','Prediction']])

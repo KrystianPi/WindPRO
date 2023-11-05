@@ -8,7 +8,7 @@ import datetime
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 def ingest_measurments(station, past_days):
-    # Measurments are used only to assess performance and retrain model every month.     
+    '''Get the measurments from wind station and ingest into db. Used only for monitoring and retraining'''     
     # Get data
     df = get_measurments(station, past_days)
 
@@ -41,6 +41,7 @@ def ingest_measurments(station, past_days):
         print(f'Weekly measurments for {df["Time"]} ingested successfully and appended to main table!')   
 
 def ingest_forecast():
+    '''Get forecast for 3 days ahead and ingest into temp table in db. Used for inference'''
     # New forecast needs to be fed everyday because predictions for the current and next day will be made every day
     table_name = f'forecast_temp'
     
@@ -61,6 +62,8 @@ def ingest_forecast():
         print(f"Data type mismatch or other data error: {e}")
 
 def ingest_hist_forecast(past_days):
+    '''Get forecast of the past week or more and ingest into forecast_weekly after one week ingest into main forecast table''' 
+    '''Used for monitoring and retraining'''
     # Table containing all historical forecast
 
     # Get past week data
@@ -95,6 +98,7 @@ def ingest_hist_forecast(past_days):
         print(f'Weekly forecast for {df["Time"]} ingested successfully and appended to main table!') 
 
 def ingest_predictions_temp(station, pred):
+    '''Used for inference. Ingest predictions of the model to db so later streamlit can take from there'''
     table_name = f'current_pred_{station}'
     
     # Get database url

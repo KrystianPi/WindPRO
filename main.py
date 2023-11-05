@@ -9,19 +9,21 @@ import os
 
 # Trigger Everyday
 def predict(station, model_name, version, RUN_ID = None):
+    '''Inference performed every day. Returns predictions and datetime list'''
     ingest_forecast()
     df_forecast = select_forecast(station,purpose='predict')
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     time = df_forecast['Time'].tolist()
+    direction = df_forecast['WindDirForecast']
     X = df_forecast[model.feature_names]
-    return model.predict(X), time
+    return model.predict(X), time, direction
 
 # Trigger Every Week
-def monitor(station, model_name, version, RUN_ID = None):
-    # Every run check is performed: 
-    # If today - last update date in database is less then 7 days replace the week_temp database 
-    # If today - last update date => 7 days take the week_temp and append to main 
-    # This will prevent duplicates existing in database, every week the forcast and measurments main table will grow by one week of data
+def monitor(station, model_name, version, RUN_ID = None, mode = 'base'):
+    '''Function to evaluate the model performance once per week. Return scores for forecast and model result
+    If today - last update date in database is less then 7 days replace the week_temp database 
+    If today - last update date => 7 days take the week_temp and append to main 
+    This will prevent duplicates existing in database, every week the forcast and measurments main table will grow by one week of data '''
     ingest_hist_forecast(past_days=7)
     ingest_measurments(station=station, past_days=7)
     df_forecast = select_forecast(station, purpose='test')
@@ -30,18 +32,22 @@ def monitor(station, model_name, version, RUN_ID = None):
     df_test = pd.merge(df_forecast, df_measurments, how='inner', on='Time')
 
     df_test.dropna(subset='WindSpeed', inplace=True)
+    df_test.dropna(subset='WindGust', inplace=True)
 
     # Double check on duplicates
     df_test.drop_duplicates(subset='Time', inplace=True)
 
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
-    return model.model_evaluation(df_test)
+    return model.model_evaluation(df_test, mode)
 
 # Trigger Every Month
-def retrain(station, model_name, version, RUN_ID = None):
+def retrain(station, model_name, version, RUN_ID = None, mode = 'base'):
+    '''Retrain performed twice per month. Returns train cross validation score.'''
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
+    df_forecast = select_forecast(station, purpose='retrain')
+    df_measurments = select_measurments(station, purpose='retrain')
     model.get_train_data() 
-    model.transform()  
+    model.transform(df_forecast, df_measurments, mode)  
     model.parameter_tuning() 
     train_cv_accuracy = model.k_fold_cross_validation()
     model.fit()
