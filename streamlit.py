@@ -58,13 +58,26 @@ def transform_dataframe(df):
     # Drop the original 'Time' column
     df = df.drop(columns=['Time'])
 
-    bins = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-    labels = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    # Define refined bins and labels for wind direction
+    bins = np.arange(0, 361, 22.5)
+    labels = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'N']
 
-    # Bin wind directions 
-    df['Direction'] = pd.cut(df['Direction'], bins=bins, labels=labels)
+    # Bin wind directions with the refined bins and labels
+    df['Direction'] = pd.cut(df['Direction'] % 360, bins=bins, labels=labels[:-1], include_lowest=True)
 
-    return df[['Day', 'Hour', 'Wind [kt]', 'Gust [kt]', 'Direction']]
+    # Mapping for direction arrows
+    arrows = {
+        'N': '↓', 'NNE': '↓', 'NE': '↙', 'ENE': '←',
+        'E': '←', 'ESE': '←', 'SE': '↗', 'SSE': '↗',
+        'S': '↑', 'SSW': '↑', 'SW': '↖', 'WSW': '→',
+        'W': '→', 'WNW': '→', 'NW': '↘', 'NNW': '↓'
+    }
+
+    # Add a new column for the arrows
+    df['Arrow'] = df['Direction'].map(arrows)
+
+    return df[['Day', 'Hour', 'Wind [kt]', 'Gust [kt]', 'Direction', 'Arrow']]
 
 # Transform the DataFrame
 transformed_df = transform_dataframe(df)
