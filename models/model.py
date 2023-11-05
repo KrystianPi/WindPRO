@@ -120,8 +120,8 @@ class Model():
         self.model.fit(self.X, self.y)
 
     def save_model(self):
-        #mlflow.register_model(f"s3://mlflow-artifacts-krystianpi/mlflow/{self.id}", "xgboost-8features-hpt")
-        mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", self.model_name)
+        mlflow.register_model(f"s3://mlflow-artifacts-krystianpi/mlflow/{mlflow.active_run().info.run_id}", self.model_name)
+        #mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", self.model_name)
         # mlflow.register_model(
         # f"runs:/{self.id}/sklearn-model", "xgboost-8features-hpt"
         # )

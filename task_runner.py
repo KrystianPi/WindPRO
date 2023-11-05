@@ -36,7 +36,9 @@ PARAMS = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt",
-    "version": str(max_version)
+    "model_name_gust": "xgboost-8features-hpt-gust",
+    "version": str(max_version),
+    "version_gust": str(max_version)
 }
 
 connection.close()
