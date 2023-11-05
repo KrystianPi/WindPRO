@@ -17,5 +17,5 @@ services:
       PG_PASSWORD: "${PG_PASSWORD}"
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY}"
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET}"
-    mem_limit: 330m
+    mem_limit: 350m
     network_mode: "host"

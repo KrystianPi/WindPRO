@@ -33,27 +33,40 @@ df = pd.read_sql(query, connection)
 max_version_gust = df[df['name'] == 'xgboost-8features-hpt-guster3']['version'].max()
 max_version = df[df['name'] == 'xgboost-8features-hpt']['version'].max()
 
-PARAMS = {
+PARAMS_WIND = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt",
     "model_name_gust": "xgboost-8features-hpt-guster3",
     "version": str(max_version),
-    "version_gust": str(max_version_gust)
+    "version_gust": str(max_version_gust),
+    "mode": "base"
+}
+
+PARAMS_GUST = {
+    "station": "rewa",
+    "experiment_name": "xgb_aws_prod",
+    "model_name": "xgboost-8features-hpt-guster3",
+    "model_name_gust": "xgboost-8features-hpt-guster3",
+    "version": str(max_version_gust),
+    "version_gust": str(max_version_gust),
+    "mode": "gust"
 }
 
 connection.close()
 
 def call_predict():
-    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS)
+    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_WIND)
     print(response.text)
 
 def call_monitor():
-    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_WIND)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_GUST)
     print(response.text)
 
 def call_retrain():
-    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS)
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_WIND)
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_GUST)
     print(response.text)
 
 if __name__ == "__main__":
