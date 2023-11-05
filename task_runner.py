@@ -30,15 +30,16 @@ query = 'select * from model_versions'
 
 df = pd.read_sql(query, connection)
 
-max_version = df['version'].max()
+max_version_gust = df[df['name'] == 'xgboost-8features-hpt-guster3']['version'].max()
+max_version = df[df['name'] == 'xgboost-8features-hpt']['version'].max()
 
 PARAMS = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt",
-    "model_name_gust": "xgboost-8features-hpt-gust",
+    "model_name_gust": "xgboost-8features-hpt-guster3",
     "version": str(max_version),
-    "version_gust": str(max_version)
+    "version_gust": str(max_version_gust)
 }
 
 connection.close()

@@ -52,10 +52,19 @@ def transform_dataframe(df):
     # Round the 'Wind' column to 0 decimal places
     df['Wind [kt]'] = df['Wind'].round(0).astype(int)
 
+    # Round the 'Wind' column to 0 decimal places
+    df['Gust [kt]'] = df['Gust'].round(0).astype(int)
+
     # Drop the original 'Time' column
     df = df.drop(columns=['Time'])
 
-    return df[['Day', 'Hour', 'Wind [kt]']]
+    bins = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+    labels = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+
+    # Bin wind directions 
+    df['Direction'] = pd.cut(df['Direction'], bins=bins, labels=labels)
+
+    return df[['Day', 'Hour', 'Wind [kt]', 'Gust [kt]', 'Direction']]
 
 # Transform the DataFrame
 transformed_df = transform_dataframe(df)
