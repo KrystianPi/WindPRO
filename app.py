@@ -28,7 +28,7 @@ app = FastAPI()
 
 @app.post("/predict")
 def api_predict(params: PredictionParams):
-    """ This will be executed once per day """
+    """ This will be executed once per day  """
     station = params.station
     experiment_name = params.experiment_name
     model_name = params.model_name
