@@ -94,4 +94,4 @@ set_background_image_with_base64('rewa.jpeg')
 st.markdown("### Forecast for Rewa, Poland enhanced with Machine Learning")
 
 # Display the transformed DataFrame
-st.dataframe(transformed_df, width = 300, height = 800)
+st.dataframe(transformed_df, width = 500, height = 800)

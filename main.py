@@ -48,10 +48,13 @@ def retrain(station, model_name, version, RUN_ID = None, mode = 'base'):
     df_measurments = select_measurments(station, purpose='retrain')
     #model.get_train_data() 
     model.transform(df_forecast, df_measurments, mode)  
+    del df_forecast
+    del df_measurments
     model.parameter_tuning() 
     train_cv_accuracy = model.k_fold_cross_validation()
     model.fit()
     model.save_model()
+    del model
     return train_cv_accuracy
 
 if __name__ == '__main__': 
