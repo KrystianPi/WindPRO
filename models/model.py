@@ -144,7 +144,7 @@ class Model():
             y_test = test_data['WindGust']
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
-        print(test_data[['Time','WindForecast','WindSpeed','Prediction']])
+        print(test_data[['Time','WindForecast', 'GustForecast','WindSpeed','WindGust','Prediction']])
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
         mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
         mlflow.log_param("model", mode)
