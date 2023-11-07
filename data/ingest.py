@@ -135,7 +135,7 @@ def record_training(station, model_name):
     # Create a DataFrame with the necessary data
     df = pd.DataFrame({
         'model_name': [model_name],
-        'retrained_date': [datetime.now().date()]  # Gets today's date
+        'retrained_date': [datetime.datetime.now().date()]  # Gets today's date
     })
 
     # Append the data to the SQL table
