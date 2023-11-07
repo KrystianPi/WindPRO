@@ -30,7 +30,6 @@ def ingest_measurments(station, past_days):
     # The result will be in the first row, first column of the DataFrame
     last_date_in_db = pd.to_datetime(df_last['last_time'].iloc[0])
 
-    df['Time'] = pd.to_datetime(df['Time']).dt.date
     df_new_measurements = df[df['Time'] > last_date_in_db]
 
     # Check if there is new data to append
