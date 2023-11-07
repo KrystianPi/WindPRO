@@ -24,7 +24,7 @@ def ingest_measurments(station, past_days):
 
     # Query the most recent date in the measurements table
     #query = f'SELECT MAX(Time) FROM {table_name}'
-    query = f'SELECT MAX(Time) as last_time FROM {table_name}'
+    query = f'SELECT MAX("Time") as last_time FROM {table_name}'
     df_last = pd.read_sql(query, engine)
 
     # The result will be in the first row, first column of the DataFrame
@@ -77,7 +77,7 @@ def ingest_hist_forecast(past_days, forecast_days):
     engine = create_engine(db_url)
 
     # Fetch the last date in the forecast table
-    last_date_query = f'SELECT MAX(Time) as last_time FROM forecast'
+    last_date_query = f'SELECT MAX("Time") as last_time FROM forecast'
     df_last = pd.read_sql(last_date_query, engine)
     last_date_in_db = df_last['last_time'].iloc[0].date()
 
