@@ -23,20 +23,15 @@ def ingest_measurments(station, past_days):
     table_name = f'measurements_{station}'
 
     # Query the most recent date in the measurements table
-    query = f'SELECT MAX(Time) FROM {table_name}'
-    last_date_in_db_result = engine.execute(query).fetchone()
-    last_date_in_db = last_date_in_db_result[0] if last_date_in_db_result else None
+    #query = f'SELECT MAX(Time) FROM {table_name}'
+    query = f'SELECT MAX(Time) as last_time FROM {table_name}'
+    df_last = pd.read_sql(query, engine)
 
-    # Convert to date if not None
-    if last_date_in_db:
-        last_date_in_db = last_date_in_db.date()
+    # The result will be in the first row, first column of the DataFrame
+    last_date_in_db = df_last['last_time'].iloc[0].date()
 
-    # Filter the dataframe for new measurements
-    if last_date_in_db:
-        df['Time'] = pd.to_datetime(df['Time']).dt.date
-        df_new_measurements = df[df['Time'] > last_date_in_db]
-    else:
-        df_new_measurements = df
+    df['Time'] = pd.to_datetime(df['Time']).dt.date
+    df_new_measurements = df[df['Time'] > last_date_in_db]
 
     # Check if there is new data to append
     if not df_new_measurements.empty:
@@ -82,33 +77,18 @@ def ingest_hist_forecast(past_days, forecast_days):
     engine = create_engine(db_url)
 
     # Fetch the last date in the forecast table
-    last_date_query = 'SELECT MAX(Time) FROM forecast'
-    with engine.connect() as conn:
-        result = conn.execute(last_date_query)
-        last_date_in_forecast = result.fetchone()[0]
+    last_date_query = f'SELECT MAX(Time) as last_time FROM forecast'
+    df_last = pd.read_sql(last_date_query, engine)
+    last_date_in_db = df_last['last_time'].iloc[0].date()
 
-    # If the table is empty, then assume we need all the data from the function call
-    if last_date_in_forecast is None:
-        last_date_in_forecast = datetime.datetime.strptime(df['Time'].min(), '%Y-%m-%d').date()
-    else:
-        last_date_in_forecast = datetime.datetime.strptime(last_date_in_forecast, '%Y-%m-%d').date()
-
-    # Calculate the number of days between the last date in the forecast table and today
-    delta_days = (datetime.date.today() - last_date_in_forecast).days
-
-    # If there are days to update
-    if delta_days > 0:
-        # Filter the DataFrame for dates that are newer than the last date in the forecast table
-        df_filtered = df[df['Time'] > last_date_in_forecast.strftime('%Y-%m-%d')]
+    df_filtered = df[df['Time'] > last_date_in_db]
         
-        if not df_filtered.empty:
-            table_name = 'forecast'
-            df_filtered.to_sql(table_name, engine, if_exists='append', index=False)
-            print(f"Appended new forecast data from {last_date_in_forecast + datetime.timedelta(days=1)} to {datetime.date.today()} to the main table.")
-        else:
-            print("No new dates to append to the forecast table.")
+    if not df_filtered.empty:
+        table_name = 'forecast'
+        df_filtered.to_sql(table_name, engine, if_exists='append', index=False)
+        print(f"Appended new forecast data from {last_date_in_db + datetime.timedelta(days=1)} to {datetime.date.today()} to the main table.")
     else:
-        print("The forecast table is up-to-date as of today.")
+        print("No new dates to append to the forecast table.")
 
 def ingest_predictions_temp(station, pred):
     '''Used for inference. Ingest predictions of the model to db so later streamlit can take from there'''
