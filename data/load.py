@@ -20,8 +20,7 @@ def select_forecast(station, past_days=0, purpose='predict'):
     if purpose == 'test':
         query = f'''
                 SELECT * FROM forecast
-                WHERE "Time" >= '{start_date}'
-                AND station_id = '{station}';
+                WHERE "Time" >= '{start_date}';
                 '''
     if purpose == 'retrain':
         query = f"SELECT * FROM forecast"

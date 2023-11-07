@@ -79,6 +79,8 @@ def ingest_hist_forecast(past_days, forecast_days):
     last_date_query = f'SELECT MAX("Time") as last_time FROM forecast'
     df_last = pd.read_sql(last_date_query, engine)
     last_date_in_db = pd.to_datetime(df_last['last_time'].iloc[0])
+    print(last_date_in_db)
+    print(df['Time'])
 
     df_filtered = df[df['Time'] > last_date_in_db]
         
