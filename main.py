@@ -26,7 +26,7 @@ def monitor(station, model_name, version, RUN_ID = None, mode = 'base'):
     This will prevent duplicates existing in database, every week the forcast and measurments main table will grow by one week of data '''
     # Calculate the difference in days
     last_training_date = select_training_date(station, model_name)
-    difference = (datetime.datetime.now().date() - last_training_date).days
+    difference = (datetime.datetime.now().date() - last_training_date.date()).days
     if difference == 0:
         past_days = 1
     else:
