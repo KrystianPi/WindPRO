@@ -20,7 +20,7 @@ def ingest_measurments(station, past_days):
     engine = create_engine(db_url)
 
     # Define table name based on the station
-    table_name = f'measurements_{station}'
+    table_name = f'measurments_{station}'
 
     # Query the most recent date in the measurements table
     #query = f'SELECT MAX(Time) FROM {table_name}'
