@@ -46,7 +46,7 @@ def select_measurments(station, past_days=0, purpose='test'):
         query = f"SELECT * FROM measurments_{station}"
     if purpose == 'test':
             query = f'''
-                    SELECT * FROM measurements_{station}
+                    SELECT * FROM measurments_{station}
                     WHERE "Time" >= '{start_date}';
                     '''
 
