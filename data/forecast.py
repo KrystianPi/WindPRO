@@ -6,15 +6,8 @@ URL = "https://api.open-meteo.com/v1/gfs"
 LATIUDE = 54.76
 LONGITUDE = 18.51
 
-def get_forecast(past_days = 0):
+def get_forecast(past_days = 1, forecast_days = 3):
     today = date.today()
-    if past_days == 7:
-        forecast_days = 1
-        past_days = 7
-    else:
-        forecast_days = 3
-        past_days = 0
-
     # Define the parameters for the API request
     params = {
         "latitude": LATIUDE,

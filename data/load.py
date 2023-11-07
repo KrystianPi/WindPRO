@@ -1,9 +1,12 @@
 from sqlalchemy import create_engine
 from .config import get_config
 import pandas as pd
+import datetime
 
-def select_forecast(station, purpose='predict'):
+def select_forecast(station, past_days=0, purpose='predict'):
     '''Get forecast for predictions or for monitoring.'''
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=past_days)).date()
+
     db_url = get_config()
 
     # Create an SQLAlchemy engine
@@ -15,7 +18,11 @@ def select_forecast(station, purpose='predict'):
     if purpose == 'predict':
         query = f"SELECT * FROM forecast_temp"
     if purpose == 'test':
-        query = 'SELECT * FROM forecast WHERE "Time" >= NOW() - INTERVAL \'7 days\';'
+        query = f'''
+                SELECT * FROM forecast
+                WHERE "Time" >= '{start_date}'
+                AND station_id = '{station}';
+                '''
     if purpose == 'retrain':
         query = f"SELECT * FROM forecast"
 
@@ -24,8 +31,9 @@ def select_forecast(station, purpose='predict'):
 
     return df
 
-def select_measurments(station, purpose='test'):
+def select_measurments(station, past_days=0, purpose='test'):
     '''Get measurments for monitoring or retraining'''
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=past_days)).date()
 
     db_url = get_config()
 
@@ -38,8 +46,36 @@ def select_measurments(station, purpose='test'):
     if purpose == 'retrain':
         query = f"SELECT * FROM measurments_{station}"
     if purpose == 'test':
-        query = f'SELECT * FROM measurments_{station} WHERE "Time" >= NOW() - INTERVAL \'7 days\';'
+            query = f'''
+                    SELECT * FROM measurements_{station}
+                    WHERE "Time" >= '{start_date}';
+                    '''
 
     df = pd.read_sql(query, connection)
 
     return df
+
+def select_training_date(station, model_name):
+    '''Get the date of the last model training.'''
+    db_url = get_config()
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+
+    # Use the engine to connect to the database
+    connection = engine.connect()
+
+    query = f"""
+        SELECT retrained_date FROM table_update_{station}
+        WHERE model_name = '{model_name}'
+        ORDER BY retrained_date DESC
+        LIMIT 1;
+        """
+
+    df = pd.read_sql(query, connection)
+
+    last_date = df.iloc[0]['retrained_date']
+
+    connection.close()
+
+    return last_date

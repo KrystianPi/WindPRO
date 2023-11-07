@@ -4,6 +4,7 @@ from .forecast import get_forecast
 from .config import get_config
 from pathlib import Path
 import datetime
+import pandas as pd
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -18,27 +19,32 @@ def ingest_measurments(station, past_days):
     # Create an SQLAlchemy engine
     engine = create_engine(db_url)
 
-    # Write to the file (this will replace contents or create a new file)
-    filename = BASE_DIR / 'data' / 'logs' / f'last_ingest_measurments_{station}.txt'
-    
-    with open(filename, 'r') as f:
-        last_date = f.read().strip()
-    last_date = datetime.datetime.strptime(last_date, '%Y-%m-%d').date()
-    
-    print((datetime.date.today() - last_date).days)
-    
-    # Weekly update, prevent duplicates
-    if (datetime.date.today() - last_date).days < 7:
-        table_name = f'measurments_{station}_weekly'
-        df.to_sql(table_name, engine, if_exists='replace', index=False)
-        print(f'Weekly measurments for {df["Time"]} ingested successfully!') 
-    elif (datetime.date.today() - last_date).days >= 7:
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        with open(filename, 'w') as f:
-            f.write(today)
-        table_name = f'measurments_{station}'
-        df.to_sql(table_name, engine, if_exists='append', index=False)  
-        print(f'Weekly measurments for {df["Time"]} ingested successfully and appended to main table!')   
+    # Define table name based on the station
+    table_name = f'measurements_{station}'
+
+    # Query the most recent date in the measurements table
+    query = f'SELECT MAX(Time) FROM {table_name}'
+    last_date_in_db_result = engine.execute(query).fetchone()
+    last_date_in_db = last_date_in_db_result[0] if last_date_in_db_result else None
+
+    # Convert to date if not None
+    if last_date_in_db:
+        last_date_in_db = last_date_in_db.date()
+
+    # Filter the dataframe for new measurements
+    if last_date_in_db:
+        df['Time'] = pd.to_datetime(df['Time']).dt.date
+        df_new_measurements = df[df['Time'] > last_date_in_db]
+    else:
+        df_new_measurements = df
+
+    # Check if there is new data to append
+    if not df_new_measurements.empty:
+        # Append new measurements to the database
+        df_new_measurements.to_sql(table_name, engine, if_exists='append', index=False)
+        print(f'New measurements for {station} ingested successfully into {table_name}.')
+    else:
+        print('No new measurements to ingest.')
 
 def ingest_forecast():
     '''Get forecast for 3 days ahead and ingest into temp table in db. Used for inference'''
@@ -61,13 +67,13 @@ def ingest_forecast():
     except Exception as e:
         print(f"Data type mismatch or other data error: {e}")
 
-def ingest_hist_forecast(past_days):
+def ingest_hist_forecast(past_days, forecast_days):
     '''Get forecast of the past week or more and ingest into forecast_weekly after one week ingest into main forecast table''' 
     '''Used for monitoring and retraining'''
     # Table containing all historical forecast
 
     # Get past week data
-    df = get_forecast(past_days)
+    df = get_forecast(past_days, forecast_days)
 
     # Get database url
     db_url = get_config()
@@ -75,27 +81,34 @@ def ingest_hist_forecast(past_days):
     # Create an SQLAlchemy engine
     engine = create_engine(db_url)
 
-    # Write to the file (this will replace contents or create a new file)
-    filename = BASE_DIR / 'data' / 'logs' / f'last_ingest_forecast.txt'
-    
-    with open(filename, 'r') as f:
-        last_date = f.read().strip()
-    last_date = datetime.datetime.strptime(last_date, '%Y-%m-%d').date()
-    
-    print((datetime.date.today() - last_date).days)
-    
-    # Weekly update, prevent duplicates
-    if (datetime.date.today() - last_date).days < 7:
-        table_name = f'forecast_weekly'
-        df.to_sql(table_name, engine, if_exists='replace', index=False)
-        print(f'Weekly forecast for {df["Time"]} ingested successfully!') 
-    elif (datetime.date.today() - last_date).days >= 7:
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        with open(filename, 'w') as f:
-            f.write(today)
-        table_name = f'forecast'
-        df.to_sql(table_name, engine, if_exists='append', index=False)  
-        print(f'Weekly forecast for {df["Time"]} ingested successfully and appended to main table!') 
+    # Fetch the last date in the forecast table
+    last_date_query = 'SELECT MAX(Time) FROM forecast'
+    with engine.connect() as conn:
+        result = conn.execute(last_date_query)
+        last_date_in_forecast = result.fetchone()[0]
+
+    # If the table is empty, then assume we need all the data from the function call
+    if last_date_in_forecast is None:
+        last_date_in_forecast = datetime.datetime.strptime(df['Time'].min(), '%Y-%m-%d').date()
+    else:
+        last_date_in_forecast = datetime.datetime.strptime(last_date_in_forecast, '%Y-%m-%d').date()
+
+    # Calculate the number of days between the last date in the forecast table and today
+    delta_days = (datetime.date.today() - last_date_in_forecast).days
+
+    # If there are days to update
+    if delta_days > 0:
+        # Filter the DataFrame for dates that are newer than the last date in the forecast table
+        df_filtered = df[df['Time'] > last_date_in_forecast.strftime('%Y-%m-%d')]
+        
+        if not df_filtered.empty:
+            table_name = 'forecast'
+            df_filtered.to_sql(table_name, engine, if_exists='append', index=False)
+            print(f"Appended new forecast data from {last_date_in_forecast + datetime.timedelta(days=1)} to {datetime.date.today()} to the main table.")
+        else:
+            print("No new dates to append to the forecast table.")
+    else:
+        print("The forecast table is up-to-date as of today.")
 
 def ingest_predictions_temp(station, pred):
     '''Used for inference. Ingest predictions of the model to db so later streamlit can take from there'''
@@ -110,6 +123,24 @@ def ingest_predictions_temp(station, pred):
     pred.to_sql(table_name, engine, if_exists='replace', index=False)
     print(f'Prediction for {station} ingested successfully!')
 
+def record_training(station, model_name):
+    '''Records the last retraining of the model to the RDS postgres'''
+    table_name = f'table_update_{station}'
+
+    db_url = get_config()
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+
+    # Create a DataFrame with the necessary data
+    df = pd.DataFrame({
+        'model_name': [model_name],
+        'retrained_date': [datetime.now().date()]  # Gets today's date
+    })
+
+    # Append the data to the SQL table
+    df.to_sql(table_name, engine, if_exists='append', index=False)
+    
 if __name__ == '__main__': 
     # ingest_measurments(14)
     ingest_hist_forecast()

@@ -1,5 +1,5 @@
-from data.load import select_forecast, select_measurments
-from data.ingest import ingest_forecast, ingest_hist_forecast, ingest_measurments
+from data.load import select_forecast, select_measurments, select_training_date
+from data.ingest import ingest_forecast, ingest_hist_forecast, ingest_measurments, record_training
 from models.model import Model
 import pandas as pd
 import mlflow
@@ -24,10 +24,17 @@ def monitor(station, model_name, version, RUN_ID = None, mode = 'base'):
     If today - last update date in database is less then 7 days replace the week_temp database 
     If today - last update date => 7 days take the week_temp and append to main 
     This will prevent duplicates existing in database, every week the forcast and measurments main table will grow by one week of data '''
-    ingest_hist_forecast(past_days=7)
-    ingest_measurments(station=station, past_days=7)
-    df_forecast = select_forecast(station, purpose='test')
-    df_measurments = select_measurments(station, purpose='test')
+    # Calculate the difference in days
+    last_training_date = select_training_date(station, model_name)
+    difference = (datetime.now().date() - last_training_date).days
+    if difference == 0:
+        past_days = 1
+    else:
+        past_days = difference
+    ingest_hist_forecast(past_days=past_days, forecast_days=1)
+    ingest_measurments(station=station, past_days=past_days)
+    df_forecast = select_forecast(station, past_days=past_days, purpose='test')
+    df_measurments = select_measurments(station, past_days=past_days, purpose='test')
     
     df_test = pd.merge(df_forecast, df_measurments, how='inner', on='Time')
 
@@ -54,6 +61,7 @@ def retrain(station, model_name, version, RUN_ID = None, mode = 'base'):
     train_cv_accuracy = model.k_fold_cross_validation()
     model.fit()
     model.save_model()
+    record_training(station, model_name)
     del model
     return train_cv_accuracy
 
