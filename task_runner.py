@@ -30,10 +30,12 @@ query = 'select * from model_versions'
 
 df = pd.read_sql(query, connection)
 
-max_version_gust = df[df['name'] == 'xgboost-8features-hpt-guster3']['version'].max()
 max_version = df[df['name'] == 'xgboost-8features-hpt']['version'].max()
+max_version_gust = df[df['name'] == 'xgboost-8features-hpt-guster3']['version'].max()
+max_version_kuznica = df[df['name'] == 'xgboost-8features-hpt-kuznica']['version'].max()
+max_version_gust_kuznica = df[df['name'] == 'xgboost-8features-hpt-guster-kuznica']['version'].max()
 
-PARAMS_WIND = {
+PARAMS_WIND_REWA = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt",
@@ -43,7 +45,17 @@ PARAMS_WIND = {
     "mode": "base"
 }
 
-PARAMS_GUST = {
+PARAMS_WIND_KUZNICA = {
+    "station": "kuznica",
+    "experiment_name": "xgb_aws_prod",
+    "model_name": "xgboost-8features-hpt-kuznica",
+    "model_name_gust": "xgboost-8features-hpt-guster-kuznica",
+    "version": str(max_version_kuznica),
+    "version_gust": str(max_version_gust_kuznica),
+    "mode": "base"
+}
+
+PARAMS_GUST_REWA = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
     "model_name": "xgboost-8features-hpt-guster3",
@@ -53,20 +65,44 @@ PARAMS_GUST = {
     "mode": "gust"
 }
 
+PARAMS_GUST_KUZNICA = {
+    "station": "kuznica",
+    "experiment_name": "xgb_aws_prod",
+    "model_name": "xgboost-8features-hpt-guster-kuznica",
+    "model_name_gust": "xgboost-8features-hpt-guster-kuznica",
+    "version": str(max_version_gust_kuznica),
+    "version_gust": str(max_version_gust_kuznica),
+    "mode": "gust"
+}
+
 connection.close()
 
 def call_predict():
-    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_WIND)
+    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_WIND_REWA)
     print(response.text)
 
 def call_monitor():
-    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_WIND)
-    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_GUST)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_WIND_REWA)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_GUST_REWA)
     print(response.text)
 
 def call_retrain():
-    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_WIND)
-    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_GUST)
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_WIND_REWA)
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_GUST_REWA)
+    print(response.text)
+
+def call_predict_kuznica():
+    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_WIND_KUZNICA)
+    print(response.text)
+
+def call_monitor_kuznica():
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_WIND_KUZNICA)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_GUST_KUZNICA)
+    print(response.text)
+
+def call_retrain_kuznica():
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_WIND_KUZNICA)
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_GUST_KUZNICA)
     print(response.text)
 
 if __name__ == "__main__":
@@ -82,5 +118,11 @@ if __name__ == "__main__":
         call_monitor()
     elif command == 'retrain':
         call_retrain()
+    elif command == 'predict_kuznica':
+        call_predict_kuznica()
+    elif command == 'monitor_kuznica':
+        call_monitor_kuznica()
+    elif command == 'retrain_kuznica':
+        call_retrain_kuznica()
     else:
         print("Invalid command. Use 'predict', 'monitor', or 'retrain'.")

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import base64
 
+######################################################## HELPER FUNCTIONS ########################################################
 def get_config():
     PG_HOST=st.secrets.db_credentials.pg_host 
     PG_PORT=st.secrets.db_credentials.pg_port
@@ -15,28 +16,6 @@ def get_config():
     db_url = f'postgresql+psycopg2://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}'
     
     return db_url
-
-db_url = get_config()
-
-# Create an SQLAlchemy engine
-engine = create_engine(db_url)
-
-# Use the engine to connect to the database
-connection = engine.connect()
-
-query = 'SELECT * FROM current_pred_rewa'
-
-df = pd.read_sql(query, connection)
-
-connection.close()
-# Function to format the day with suffix
-
-def format_day_suffix(d):
-    if 10 <= d <= 20:
-        suffix = 'th'
-    else:
-        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
-    return f"{d}{suffix}"
 
 # Function to apply the transformations
 def transform_dataframe(df):
@@ -79,9 +58,6 @@ def transform_dataframe(df):
 
     return df[['Day', 'Hour', 'Wind [kt]', 'Gust [kt]', 'Direction', 'Arrow']]
 
-# Transform the DataFrame
-transformed_df = transform_dataframe(df)
-
 def get_base64_of_file(file_path):
     with open(file_path, "rb") as f:
         data = f.read()
@@ -100,11 +76,58 @@ def set_background_image_with_base64(file_path):
         """,
         unsafe_allow_html=True
     )
+#############################################################################################################################################
 
-set_background_image_with_base64('rewa.jpeg')
+if __name__ == '__main__': 
+    set_background_image_with_base64('kuznica.jpeg')
 
-# Title for the table
-st.markdown("### Forecast for Rewa, Poland enhanced with Machine Learning")
+    # Dropdown to select the table
+    option = st.selectbox(
+        'Which location would you like to display?',
+        ('rewa', 'kuznica'),
+        placeholder="Select location...",
+        index=None,
+    )
 
-# Display the transformed DataFrame
-st.dataframe(transformed_df, width = 500, height = 800)
+    db_url = get_config()
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+
+    # Use the engine to connect to the database
+    connection = engine.connect()
+
+    query_rewa = 'SELECT * FROM current_pred_rewa'
+    query_kuznica = 'SELECT * FROM current_pred_kuznica'
+
+    df_rewa = pd.read_sql(query_rewa, connection)
+    df_kuznica = pd.read_sql(query_kuznica, connection)
+
+    connection.close()
+    # Function to format the day with suffix
+
+    def format_day_suffix(d):
+        if 10 <= d <= 20:
+            suffix = 'th'
+        else:
+            suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
+        return f"{d}{suffix}"
+
+    # Transform the DataFrame
+    transformed_df_rewa = transform_dataframe(df_rewa)
+    transformed_df_kuznica = transform_dataframe(df_kuznica)
+
+
+    if option == 'rewa':
+        set_background_image_with_base64('rewa.jpeg')
+        # Title for the table
+        st.markdown("### Forecast for Rewa, Poland enhanced with Machine Learning")
+
+        # Display the transformed DataFrame
+        st.dataframe(transformed_df_rewa, width = 500, height = 800)
+    elif option == 'kuznica':
+        set_background_image_with_base64('kuznica.jpeg')
+        st.markdown("### Forecast for Kuznica, Poland enhanced with Machine Learning")
+
+        # Display the transformed DataFrame
+        st.dataframe(transformed_df_kuznica, width = 500, height = 800)
