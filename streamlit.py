@@ -76,10 +76,49 @@ def set_background_image_with_base64(file_path):
         """,
         unsafe_allow_html=True
     )
+
+def get_test_metrics():
+    db_url = get_config()
+
+    engine = create_engine(db_url)
+
+    # Use the engine to connect to the database
+    connection = engine.connect()
+
+    df_metrics = pd.read_sql('select * from latest_metrics', connection)
+    df_params = pd.read_sql('select * from params', connection)
+    df_runs = pd.read_sql('select * from runs', connection)
+    
+    connection.close()
+
+    df_params.rename(columns={'key': 'param', 'value': 'param_value'}, inplace=True)
+
+    df_metrics_runs = pd.merge(left=df_metrics, right=df_runs, how='left', on='run_uuid')
+    df_metrics_runs = df_metrics_runs[df_metrics_runs['name'].str.contains('test')].drop_duplicates()
+    df_metrics_runs['date'] = df_metrics_runs['name'].str.extract(r'test_run_prod_(\d{4}-\d{2}-\d{2}-\d{2}-\d{2})')
+
+    # Convert the extracted string to a datetime object
+    df_metrics_runs['date'] = pd.to_datetime(df_metrics_runs['date'], format='%Y-%m-%d-%H-%M')
+
+    df_joined = pd.merge(left=df_metrics_runs, right=df_params, how='inner', on='run_uuid')
+    df_joined = df_joined[df_joined['param_value'].isin(['gust', 'base', 'rewa', 'kuznica'])]
+    df_joined = df_joined.sort_values(by='date', ascending=False).head(16)
+    
+    df_result = df_joined.groupby('timestamp').agg({
+        'param_value': lambda x: ', '.join(map(str, x)),
+        'key': 'first',
+        'value': 'first'
+    }).reset_index()[['param_value','key','value']]
+
+    df_result['param_value'] = df_result['param_value'].apply(lambda x: ', '.join(sorted(x.split(', '))))
+    df_result = df_result.pivot_table(index='param_value', columns='key', values='value').reset_index()[['param_value','forecast_accuracy','test_accuracy']]
+
+
 #############################################################################################################################################
 
 if __name__ == '__main__': 
     set_background_image_with_base64('kuznica.jpeg')
+    df_metrics = get_test_metrics()
 
     # Dropdown to select the table
     option = st.selectbox(
@@ -125,9 +164,11 @@ if __name__ == '__main__':
 
         # Display the transformed DataFrame
         st.dataframe(transformed_df_rewa, width = 500, height = 800)
+        st.dataframe(df_metrics)
     elif option == 'kuznica':
         set_background_image_with_base64('kuznica.jpeg')
         st.markdown("### Forecast for Kuznica, Poland enhanced with Machine Learning")
 
         # Display the transformed DataFrame
         st.dataframe(transformed_df_kuznica, width = 500, height = 800)
+        st.dataframe(df_metrics)
