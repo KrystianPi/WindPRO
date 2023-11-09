@@ -148,6 +148,7 @@ class Model():
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
         mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
         mlflow.log_param("model", mode)
+        mlflow.log_param("station", self.station)
         mlflow.log_param("Date Range min", test_data['Time'].min())
         mlflow.log_param("Date Range max", test_data['Time'].max())
         return r2_score(y_test, y_pred), r2_score(y_test, y_forecast)
