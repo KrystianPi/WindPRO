@@ -75,6 +75,10 @@ def select_training_date(station, model_name):
 
     last_date = df.iloc[0]['retrained_date']
 
+    from datetime import date
+    if isinstance(last_date, date):
+        last_date = pd.to_datetime(last_date)
+
     connection.close()
 
     return last_date
