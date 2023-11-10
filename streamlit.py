@@ -112,6 +112,7 @@ def get_test_metrics():
 
     df_result['param_value'] = df_result['param_value'].apply(lambda x: ', '.join(sorted(x.split(', '))))
     df_result = df_result.pivot_table(index='param_value', columns='key', values='value').reset_index()[['param_value','forecast_accuracy','test_accuracy']]
+    return df_result
 
 
 #############################################################################################################################################
