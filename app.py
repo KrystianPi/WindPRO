@@ -22,13 +22,14 @@ TRACKING_SERVER_HOST = os.environ.get("EC2_TRACKING_SERVER_HOST")
 print(f"Tracking Server URI: '{TRACKING_SERVER_HOST}'")
 mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
 
-today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
+
 
 app = FastAPI()
 
 @app.post("/predict")
 def api_predict(params: PredictionParams):
     """ This will be executed once per day  """
+    today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
     model_name = params.model_name
@@ -63,6 +64,7 @@ def api_predict(params: PredictionParams):
 @app.post("/monitor")
 def api_monitor(params: PredictionParams):
     """ This will be executed once per week """
+    today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
     model_name = params.model_name
@@ -81,6 +83,7 @@ def api_monitor(params: PredictionParams):
 @app.post("/retrain")
 def api_retrain(params: PredictionParams):
     """ This will be executed once per month """
+    today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
     model_name = params.model_name
