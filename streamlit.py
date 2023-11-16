@@ -48,8 +48,8 @@ def transform_dataframe(df):
     # Mapping for direction arrows
     arrows = {
         'N': '↓', 'NNE': '↓', 'NE': '↙', 'ENE': '←',
-        'E': '←', 'ESE': '←', 'SE': '↗', 'SSE': '↗',
-        'S': '↑', 'SSW': '↑', 'SW': '↖', 'WSW': '→',
+        'E': '←', 'ESE': '←', 'SE': '↖', 'SSE': '↑',
+        'S': '↑', 'SSW': '↑', 'SW': '↗', 'WSW': '→',
         'W': '→', 'WNW': '→', 'NW': '↘', 'NNW': '↓'
     }
 
