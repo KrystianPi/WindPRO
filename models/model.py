@@ -1,11 +1,12 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import warnings
+import numpy as np
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import xgboost as xgb
 
 from .config import get_config
@@ -145,8 +146,21 @@ class Model():
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
         print(test_data[['Time','WindForecast', 'GustForecast','WindSpeed','WindGust','Prediction']])
+
+        mae_test = mean_absolute_error(y_test, y_pred)
+        mse_test = mean_squared_error(y_test, y_pred)
+        rmse_test = np.sqrt(mse_test) 
+        mae_forecast = mean_absolute_error(y_test, y_forecast)
+        mse_forecast = mean_squared_error(y_test, y_forecast)
+        rmse_forecast = np.sqrt(mse_forecast) 
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
         mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
+        mlflow.log_metric(f"test_mae", mae_test)
+        mlflow.log_metric(f"forecast_mae", mae_forecast)
+        mlflow.log_metric(f"test_mse", mse_test)
+        mlflow.log_metric(f"forecast_mse", mse_forecast)
+        mlflow.log_metric(f"test_rmse", rmse_test)
+        mlflow.log_metric(f"forecast_rmse", rmse_forecast)
         mlflow.log_param("model", mode)
         mlflow.log_param("station", self.station)
         mlflow.log_param("Date Range min", test_data['Time'].min())
