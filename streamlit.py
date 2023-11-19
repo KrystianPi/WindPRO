@@ -102,6 +102,7 @@ def get_test_metrics():
 
     df_joined = pd.merge(left=df_metrics_runs, right=df_params, how='inner', on='run_uuid')
     df_joined = df_joined[df_joined['param_value'].isin(['gust', 'base', 'rewa', 'kuznica'])]
+    df_joined = df_joined[df_joined['key'].isin(['test_rmse','forecast_rmse'])]
     df_joined = df_joined.sort_values(by='date', ascending=False).head(16)
     
     df_result = df_joined.groupby('timestamp').agg({
@@ -111,7 +112,10 @@ def get_test_metrics():
     }).reset_index()[['param_value','key','value']]
 
     df_result['param_value'] = df_result['param_value'].apply(lambda x: ', '.join(sorted(x.split(', '))))
-    df_result = df_result.pivot_table(index='param_value', columns='key', values='value').reset_index()[['param_value','forecast_accuracy','test_accuracy']]
+    df_result = df_result.pivot_table(index='param_value', columns='key', values='value').reset_index()[['param_value','forecast_rmse','test_rmse']]
+    
+    df_result.rename(columns={'forecast_rmse':'Forecast Accuracy (RMSE)', 'test_rmse':'WindPRO Accuracy (RMSE)', 'param_value': 'Model'}, inplace = True )
+    df_result['Improvement [%]'] = (df_result['Forecast Accuracy (RMSE)'] - df_result['WindPRO Accuracy (RMSE)'])/df_result['Forecast Accuracy (RMSE)'] * 100
     return df_result
 
 
