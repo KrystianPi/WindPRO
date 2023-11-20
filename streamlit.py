@@ -101,6 +101,7 @@ def get_test_metrics():
     df_metrics_runs['date'] = pd.to_datetime(df_metrics_runs['date'], format='%Y-%m-%d-%H-%M')
 
     df_joined = pd.merge(left=df_metrics_runs, right=df_params, how='inner', on='run_uuid')
+    df_joined = df_joined[df_joined['experiment_id'] == 1]
     df_joined = df_joined[df_joined['param_value'].isin(['gust', 'base', 'rewa', 'kuznica'])]
     df_joined = df_joined[df_joined['key'].isin(['test_rmse','forecast_rmse'])]
     df_joined = df_joined.sort_values(by='date', ascending=False).head(16)
