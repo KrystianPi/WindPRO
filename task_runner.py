@@ -35,6 +35,17 @@ max_version_gust = df[df['name'] == 'xgboost-8features-hpt-guster3']['version'].
 max_version_kuznica = df[df['name'] == 'xgboost-8features-hpt-kuznica']['version'].max()
 max_version_gust_kuznica = df[df['name'] == 'xgboost-8features-hpt-guster-kuznica']['version'].max()
 
+PARAMS_TEST = {
+    "station": "rewa",
+    "experiment_name": "xgb_aws_test3",
+    "model_name": "xgboost-8features-hpt-test",
+    "model_name_gust": "xgboost-8features-hpt-guster-test",
+    "version": 1,
+    "version_gust": 1,
+    "mode": "base"
+}
+
+
 PARAMS_WIND_REWA = {
     "station": "rewa",
     "experiment_name": "xgb_aws_prod",
@@ -105,6 +116,12 @@ def call_retrain_kuznica():
     response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_GUST_KUZNICA)
     print(response.text)
 
+def call_test():
+    response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_TEST)
+    response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_TEST)
+    response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_TEST)
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python task_runner.py [predict|monitor|retrain]")
@@ -124,5 +141,7 @@ if __name__ == "__main__":
         call_monitor_kuznica()
     elif command == 'retrain_kuznica':
         call_retrain_kuznica()
+    elif command == 'test':
+        call_test()
     else:
         print("Invalid command. Use 'predict', 'monitor', or 'retrain'.")
