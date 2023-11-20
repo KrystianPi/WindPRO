@@ -120,6 +120,7 @@ def call_test():
     response = requests.post(f'{EC2_ENDPOINT}/retrain', json=PARAMS_TEST)
     response = requests.post(f'{EC2_ENDPOINT}/predict', json=PARAMS_TEST)
     response = requests.post(f'{EC2_ENDPOINT}/monitor', json=PARAMS_TEST)
+    print(response.text)
 
 
 if __name__ == "__main__":
