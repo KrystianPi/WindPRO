@@ -35,26 +35,6 @@ class Model():
         except Exception as e:
             print(f'Model not found initiating default model and training: {str(e)}')
             
-
-    def get_train_data(self):
-        db_url = get_config()
-
-        # Create an SQLAlchemy engine
-        engine = create_engine(db_url)
-
-        # Use the engine to connect to the database
-        connection = engine.connect()
-
-        # Specify the SQL query to retrieve data from a table
-        query_forecast = f"SELECT * FROM forecast"
-        query_measurments = f"SELECT * FROM measurments_{self.station}"
-
-        # Use Pandas to read data from the database into a DataFrame
-        self.df_forecast = pd.read_sql(query_forecast, connection)
-        self.df_measurments = pd.read_sql(query_measurments, connection)
-
-        connection.close()
-
     def transform(self, df_measurments, df_forecast, mode='base'):
         # Set the 'Time' column as the index
         df_measurments.set_index('Time', inplace=True)
@@ -121,11 +101,7 @@ class Model():
         self.model.fit(self.X, self.y)
 
     def save_model(self):
-        #mlflow.register_model(f"s3://mlflow-artifacts-krystianpi/{mlflow.active_run().info.run_id}/sklearn-model", self.model_name)
-        #mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/sklearn-model", self.model_name)
-        mlflow.register_model(
-        f"runs:/{self.id}/sklearn-model", self.model_name
-        )
+        mlflow.register_model(f"runs:/{self.id}/sklearn-model", self.model_name)
         mlflow.sklearn.log_model(self.model, "sklearn-model")
 
     def predict(self, X):
@@ -145,26 +121,24 @@ class Model():
             y_test = test_data['WindGust']
         y_pred = self.model.predict(X_test)
         test_data['Prediction'] = y_pred
-        print(test_data[['Time','WindForecast', 'GustForecast','WindSpeed','WindGust','Prediction']])
 
-        mae_test = mean_absolute_error(y_test, y_pred)
-        mse_test = mean_squared_error(y_test, y_pred)
-        rmse_test = np.sqrt(mse_test) 
-        mae_forecast = mean_absolute_error(y_test, y_forecast)
-        mse_forecast = mean_squared_error(y_test, y_forecast)
-        rmse_forecast = np.sqrt(mse_forecast) 
         mlflow.log_metric(f"test_accuracy", r2_score(y_test, y_pred))
         mlflow.log_metric(f"forecast_accuracy", r2_score(y_test, y_forecast))
-        mlflow.log_metric(f"test_mae", mae_test)
-        mlflow.log_metric(f"forecast_mae", mae_forecast)
-        mlflow.log_metric(f"test_mse", mse_test)
-        mlflow.log_metric(f"forecast_mse", mse_forecast)
-        mlflow.log_metric(f"test_rmse", rmse_test)
-        mlflow.log_metric(f"forecast_rmse", rmse_forecast)
+
+        mlflow.log_metric(f"test_mae", mean_absolute_error(y_test, y_pred))
+        mlflow.log_metric(f"forecast_mae", mean_absolute_error(y_test, y_forecast))
+
+        mlflow.log_metric(f"test_mse", mean_squared_error(y_test, y_pred))
+        mlflow.log_metric(f"forecast_mse", mean_squared_error(y_test, y_forecast))
+
+        mlflow.log_metric(f"test_rmse", np.sqrt(mean_squared_error(y_test, y_pred)))
+        mlflow.log_metric(f"forecast_rmse", np.sqrt(mean_squared_error(y_test, y_forecast)))
+
         mlflow.log_param("model", mode)
         mlflow.log_param("station", self.station)
         mlflow.log_param("Date Range min", test_data['Time'].min())
         mlflow.log_param("Date Range max", test_data['Time'].max())
+
         return r2_score(y_test, y_pred), r2_score(y_test, y_forecast)
 
     def load_model(self):

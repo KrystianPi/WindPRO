@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 import mlflow
-from mlflow.tracking import MlflowClient
 import uvicorn
 import pandas as pd
 from main import predict, monitor, retrain
@@ -22,13 +21,11 @@ TRACKING_SERVER_HOST = os.environ.get("EC2_TRACKING_SERVER_HOST")
 print(f"Tracking Server URI: '{TRACKING_SERVER_HOST}'")
 mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000") 
 
-
-
 app = FastAPI()
 
 @app.post("/predict")
 def api_predict(params: PredictionParams):
-    """ This will be executed once per day  """
+    """ This will be executed once per day at 2 AM."""
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
@@ -63,7 +60,7 @@ def api_predict(params: PredictionParams):
 
 @app.post("/monitor")
 def api_monitor(params: PredictionParams):
-    """ This will be executed once per week """
+    """ This will be executed every day at 11 PM."""
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
@@ -82,7 +79,7 @@ def api_monitor(params: PredictionParams):
 
 @app.post("/retrain")
 def api_retrain(params: PredictionParams):
-    """ This will be executed once per month """
+    """ This will be executed once per week."""
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name

@@ -62,11 +62,8 @@ def ingest_forecast():
         print(f"Data type mismatch or other data error: {e}")
 
 def ingest_hist_forecast(past_days, forecast_days):
-    '''Get forecast of the past week or more and ingest into forecast_weekly after one week ingest into main forecast table''' 
-    '''Used for monitoring and retraining'''
-    # Table containing all historical forecast
-
-    # Get past week data
+    '''Get past_days forecast and ingest into forecast. Used for monitoring and retraining'''
+    # Get forecast past_days into
     df = get_forecast(past_days, forecast_days)
 
     # Get database url
@@ -79,8 +76,6 @@ def ingest_hist_forecast(past_days, forecast_days):
     last_date_query = f'SELECT MAX("Time") as last_time FROM forecast'
     df_last = pd.read_sql(last_date_query, engine)
     last_date_in_db = pd.to_datetime(df_last['last_time'].iloc[0])
-    print(last_date_in_db)
-    print(df['Time'])
 
     df_filtered = df[df['Time'] > last_date_in_db]
         
@@ -92,7 +87,7 @@ def ingest_hist_forecast(past_days, forecast_days):
         print("No new dates to append to the forecast table.")
 
 def ingest_predictions_temp(station, pred):
-    '''Used for inference. Ingest predictions of the model to db so later streamlit can take from there'''
+    '''Used for inference. Ingest predictions of the model to the RDS postgres.'''
     table_name = f'current_pred_{station}'
     
     # Get database url

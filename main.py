@@ -20,29 +20,22 @@ def predict(station, model_name, version, RUN_ID = None):
 
 # Trigger Every Week
 def monitor(station, model_name, version, RUN_ID = None, mode = 'base'):
-    '''Function to evaluate the model performance once per week. Return scores for forecast and model result
-    If today - last update date in database is less then 7 days replace the week_temp database 
-    If today - last update date => 7 days take the week_temp and append to main 
-    This will prevent duplicates existing in database, every week the forcast and measurments main table will grow by one week of data '''
-    # Calculate the difference in days
+    '''Function to evaluate the model performance every evening.\n
+       Test data for model evaluation is all the predictions and measurments since last retrain.'''
     last_training_date = select_training_date(station, model_name)
-    print(last_training_date)
     difference = (datetime.datetime.now().date() - last_training_date.date()).days
     if difference == 0:
         past_days = 1
     else:
         past_days = difference
+
     ingest_hist_forecast(past_days=past_days, forecast_days=1)
     ingest_measurments(station=station, past_days=past_days)
     df_forecast = select_forecast(station, past_days=past_days, purpose='test')
     df_measurments = select_measurments(station, past_days=past_days, purpose='test')
-    
     df_test = pd.merge(df_forecast, df_measurments, how='inner', on='Time')
-
     df_test.dropna(subset='WindSpeed', inplace=True)
     df_test.dropna(subset='WindGust', inplace=True)
-
-    # Double check on duplicates
     df_test.drop_duplicates(subset='Time', inplace=True)
 
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
@@ -50,11 +43,10 @@ def monitor(station, model_name, version, RUN_ID = None, mode = 'base'):
 
 # Trigger Every Month
 def retrain(station, model_name, version, RUN_ID = None, mode = 'base'):
-    '''Retrain performed twice per month. Returns train cross validation score.'''
+    '''Retrain performed every week. Registers a new version of the model. Returns train cross validation score.'''
     model = Model(station=station,RUN_ID=RUN_ID, model_name=model_name, version=version)
     df_forecast = select_forecast(station, purpose='retrain')
     df_measurments = select_measurments(station, purpose='retrain')
-    #model.get_train_data() 
     model.transform(df_forecast, df_measurments, mode)  
     del df_forecast
     del df_measurments
