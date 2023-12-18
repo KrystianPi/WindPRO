@@ -97,5 +97,3 @@ def get_measurments(station: str, past_days: int) -> pd.DataFrame:
 
     return df
 
-if __name__ == '__main__': 
-    get_measurments(station='rewa', past_days=31)

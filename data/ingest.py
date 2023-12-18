@@ -130,6 +130,3 @@ def record_training(station: str, model_name: str) -> None:
     # Append the data to the SQL table
     df.to_sql(table_name, engine, if_exists='append', index=False)
     
-if __name__ == '__main__': 
-    # ingest_measurments(14)
-    ingest_hist_forecast()

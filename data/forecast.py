@@ -61,6 +61,3 @@ def get_forecast(past_days = 0, forecast_days = 3) -> pd.DataFrame:
     if past_days==7:
         df = df[df['Time'].dt.date < today]
     return df
-
-if __name__ == "__main__":
-    get_forecast(past=True)

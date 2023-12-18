@@ -1,7 +1,15 @@
+from dotenv import load_dotenv
+import os
 import requests
 
+load_dotenv("../.env")
+
+# Get the EC2 tracking server host from the environment variable
+EC2_TRACKING_SERVER_HOST = os.getenv('EC2_TRACKING_SERVER_HOST')
+EC2_ENDPOINT = f"http://{EC2_TRACKING_SERVER_HOST}:8000"
+
 def test_predict_endpoint():
-    url = "http://0.0.0.0:8000/predict"
+    url = f'{EC2_ENDPOINT}/predict'
     params = {
         "station": "rewa",
         "experiment_name":'xgb_aws_test3',
@@ -22,7 +30,7 @@ def test_predict_endpoint():
     assert all(isinstance(item, float) for item in data['predictions']), "Not all items in 'predictions' are floats."
 
 def test_monitor_endpoint():
-    url = "http://0.0.0.0:8000/monitor"
+    url = f'{EC2_ENDPOINT}/monitor'
     params = {
         "station": "rewa",
         "experiment_name":'xgb_aws_test3',
@@ -46,7 +54,7 @@ def test_monitor_endpoint():
     assert -float('inf') <= data['r2 score forecast'] <= 1.0, "The 'r2 score forecast' is not in the range [-inf, 1.0]"
 
 def test_retrain_endpoint():
-    url = "http://0.0.0.0:8000/retrain"
+    url = f'{EC2_ENDPOINT}/retrain'
     params = {
         "station": "rewa",
         "experiment_name":'xgb_aws_test3',
