@@ -1,9 +1,7 @@
-from pathlib import Path
 import os
 
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-
-def get_config():
+def get_config() -> str:
+    '''Setup parameters for postgres. Returns a data base url string.'''
     # Parameters for the RDS PostgreSQL instance
     PG_HOST = os.environ.get('PG_HOST')
     PG_PORT = os.environ.get('PG_PORT')

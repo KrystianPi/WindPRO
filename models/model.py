@@ -1,29 +1,31 @@
-import pandas as pd
-from sqlalchemy import create_engine
-import warnings
 import numpy as np
+import pandas as pd
+from typing import List, Tuple
+import warnings
 
+import mlflow
+import mlflow.sklearn
+import mlflow.pyfunc
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import xgboost as xgb
 
-from .config import get_config
-from pathlib import Path
-
-import mlflow
-import mlflow.sklearn
-import mlflow.pyfunc
-
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-
 # Ignore all warnings
 warnings.filterwarnings("ignore")
 
-# This class should be only for predicitng, model evaluation and retraining
 class Model():
-    def __init__(self, station, RUN_ID, model_name, version):
+    def __init__(self, station: str, RUN_ID: str, model_name: str, version: int) -> None:
+        '''
+        Initialize the Model class with station details, run ID, model name, and version.
+
+        Args:
+            station: The station for which the model is being initialized.
+            RUN_ID: The run ID for tracking in MLFlow.
+            model_name: The name of the model.
+            version: The version of the model.
+        '''
         self.station = station 
         self.id = RUN_ID 
         self.model_name = model_name
@@ -31,11 +33,19 @@ class Model():
         self.feature_names = ['Month', 'Hour', 'WindForecast', 'GustForecast',	
                               'WindDirForecast', 'Temperature', 'Precipitation', 'Cloudcover']   
         try:
-            self.load_model()
+            self._load_model()
         except Exception as e:
             print(f'Model not found initiating default model and training: {str(e)}')
             
-    def transform(self, df_measurments, df_forecast, mode='base'):
+    def transform(self, df_measurments: pd.DataFrame, df_forecast: pd.DataFrame, mode='base') -> None:
+        '''
+        Transform and merge measurement and forecast dataframes to prepare for training.
+
+        Args:
+            df_measurments: The dataframe containing weather measurement data.
+            df_forecast: The dataframe containing forecast data.
+            mode: Mode of the model, either 'base' or 'gust'. Defaults to 'base'.
+        '''
         # Set the 'Time' column as the index
         df_measurments.set_index('Time', inplace=True)
 
@@ -58,7 +68,8 @@ class Model():
         elif mode =='gust':
             self.y = self.df['WindGust']
    
-    def parameter_tuning(self):
+    def parameter_tuning(self) -> None:
+        '''Perform parameter tuning for the XGBoost model using grid search.'''
         self.k_fold = KFold(n_splits=5, shuffle=True, random_state=42)
 
         self.params_grid = {
@@ -97,21 +108,39 @@ class Model():
         mlflow.log_metric(f"std_accuracy", kfold_scores.std())
         return kfold_scores.mean()
 
-    def fit(self):
+    def fit(self) -> None:
+        '''Train the model.'''
         self.model.fit(self.X, self.y)
 
-    def save_model(self):
+    def save_model(self) -> None:
+        '''Register and log the model using MLFlow.'''
         mlflow.register_model(f"runs:/{self.id}/sklearn-model", self.model_name)
         mlflow.sklearn.log_model(self.model, "sklearn-model")
 
-    def predict(self, X):
-        pred = self.model.predict(X)
-        # Convert predictions to a suitable format (e.g., a Python list or dictionary)
-        X['Predicition'] = pred
-        print(X)
-        return(pred.tolist())
+    def predict(self, X: pd.DataFrame) -> List[float]:
+        '''
+        Make predictions using the trained model.
 
-    def model_evaluation(self, test_data, mode='base'):
+        Args:
+            X: The input features for making predictions.
+
+        Returns:
+            A list of predictions.
+        '''
+        pred = self.model.predict(X)
+        return pred.tolist()
+
+    def model_evaluation(self, test_data: pd.DataFrame, mode='base') -> Tuple[float, float]:
+        '''
+        Evaluate the model on test data and compare with forecast data.
+
+        Args:
+            test_data: The test data for evaluation.
+            mode: Mode of the model, either 'base' or 'gust'. Defaults to 'base'.
+
+        Returns:
+            A tuple containing R2 scores for model predictions and classic forecast.
+        '''
         X_test = test_data[self.feature_names]
         if mode == 'base':
             y_forecast = test_data['WindForecast']
@@ -141,9 +170,6 @@ class Model():
 
         return r2_score(y_test, y_pred), r2_score(y_test, y_forecast)
 
-    def load_model(self):
-        # Load a trained model from a pickle file
+    def _load_model(self) -> None:
+        '''Load a trained model from a pickle file.'''
         self.model = mlflow.pyfunc.load_model(model_uri=f"models:/{self.model_name}/{self.version}")
-
-if __name__ == '__main__': 
-    pass

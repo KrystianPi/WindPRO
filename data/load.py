@@ -1,10 +1,18 @@
-from sqlalchemy import create_engine
-from .config import get_config
-import pandas as pd
 import datetime
+import pandas as pd
+from datetime import date
+from sqlalchemy import create_engine
 
-def select_forecast(station, past_days=0, purpose='predict'):
-    '''Get forecast for predictions or for monitoring.'''
+from .config import get_config
+
+def select_forecast(past_days=0, purpose='predict') -> pd.DataFrame:
+    '''Get forecast for predictions or for monitoring from RDS postgres.
+
+    Args:
+        past_days: number of forecast days into the past.
+        purpose: either predict, retrain or test.
+    Returns:
+        pandas dataframe representing the forecast.'''
     start_date = (datetime.datetime.now() - datetime.timedelta(days=past_days)).date()
 
     db_url = get_config()
@@ -30,8 +38,15 @@ def select_forecast(station, past_days=0, purpose='predict'):
 
     return df
 
-def select_measurments(station, past_days=0, purpose='test'):
-    '''Get measurments for monitoring or retraining'''
+def select_measurments(station: str, past_days=0, purpose='test') -> pd.DataFrame:
+    '''Get measurments for monitoring or retraining from RDS postgres.
+    
+    Args:
+        station: string representing the name of the weather station
+        past_days: number of forecast days into the past.
+        purpose: either predict, retrain or test.
+    Returns:
+        pandas dataframe representing the measurments from the weather station.'''
     start_date = (datetime.datetime.now() - datetime.timedelta(days=past_days)).date()
 
     db_url = get_config()
@@ -54,8 +69,14 @@ def select_measurments(station, past_days=0, purpose='test'):
 
     return df
 
-def select_training_date(station, model_name):
-    '''Get the date of the last model training.'''
+def select_training_date(station: str, model_name: str) -> pd.Timestamp:
+    '''Get the date of the last model retraining.
+    
+    Args:
+        station: string representing the name of the weather station.
+        model_name: string representing name of the retrained model
+    Returns:
+        pandas dataframe representing the measurments from the weather station.'''
     db_url = get_config()
 
     # Create an SQLAlchemy engine
@@ -75,7 +96,6 @@ def select_training_date(station, model_name):
 
     last_date = df.iloc[0]['retrained_date']
 
-    from datetime import date
     if isinstance(last_date, date):
         last_date = pd.to_datetime(last_date)
 

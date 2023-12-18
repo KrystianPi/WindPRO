@@ -1,13 +1,20 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-import numpy as np
 import ast
-import pandas as pd
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+import numpy as np
+import pandas as pd
+import re
+import requests
 import time
 
-def get_measurments(station, past_days):
+def get_measurments(station: str, past_days: int) -> pd.DataFrame:
+    '''Scraper to get the weather measurments from the weather station.
+    
+    Args:
+        station: string representing the name of the weather station.
+        past_days: number of past measurment days.
+    Returns:
+        pandas dataframe representing measurments in 10 min intervals.'''
     df = pd.DataFrame()
     
     # Calculate the start and end dates for the past N days

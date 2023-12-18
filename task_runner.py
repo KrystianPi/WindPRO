@@ -1,9 +1,9 @@
-import requests
-import sys
 from dotenv import load_dotenv
 import os
-from sqlalchemy import create_engine
 import pandas as pd
+import requests
+import sys
+from sqlalchemy import create_engine
 
 # Load .env file
 load_dotenv()

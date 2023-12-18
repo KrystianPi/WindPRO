@@ -1,10 +1,11 @@
-from sqlalchemy import create_engine
-from config import get_config
 import os
 import pandas as pd
+from sqlalchemy import create_engine
 
-def migrate(station):
+from config import get_config
 
+def migrate(station: str) -> None:
+    '''Migrate data for a station from mysql to postgres.'''
     # Get database url
     db_url = get_config()
 

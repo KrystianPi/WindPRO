@@ -1,12 +1,19 @@
-import requests
-import pandas as pd
 from datetime import date
+import pandas as pd
+import requests
 
 URL = "https://api.open-meteo.com/v1/gfs"
 LATIUDE = 54.76
 LONGITUDE = 18.51
 
-def get_forecast(past_days = 0, forecast_days = 3):
+def get_forecast(past_days = 0, forecast_days = 3) -> pd.DataFrame:
+    '''Get the forecast using open-meteo api.
+       
+    Args:
+        past_days: numbers of forecast days into the past.
+        forecast_days: days of forecast into the future.
+    Returns:
+        forecast in tabular form in 2h intervals.'''
     today = date.today()
     # Define the parameters for the API request
     params = {

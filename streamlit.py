@@ -1,11 +1,12 @@
+import base64
+import numpy as np
+import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine
-import pandas as pd
-import numpy as np
-import base64
 
 ######################################################## HELPER FUNCTIONS ########################################################
-def get_config():
+def get_config() -> str:
+    '''Retrieves the database configuration from Streamlit's secrets and constructs the database URL.'''
     PG_HOST=st.secrets.db_credentials.pg_host 
     PG_PORT=st.secrets.db_credentials.pg_port
     PG_DATABASE=st.secrets.db_credentials.pg_database
@@ -18,7 +19,16 @@ def get_config():
     return db_url
 
 # Function to apply the transformations
-def transform_dataframe(df):
+def transform(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applies transformations to the input dataframe, including formatting of time and wind data.
+
+    Args:
+        df: The original dataframe from RDS postgres with wind and time data.
+
+    Returns:
+        The transformed dataframe suitable for display in streamlit.
+    """
     # Convert the 'Time' column to datetime if it's not already
     df['Time'] = pd.to_datetime(df['Time'])
 
@@ -58,13 +68,15 @@ def transform_dataframe(df):
 
     return df[['Day', 'Hour', 'Wind [kt]', 'Gust [kt]', 'Direction', 'Arrow']]
 
-def get_base64_of_file(file_path):
+def _get_base64(file_path: str) -> str:
+    '''Reads a file and converts it to a base64 encoded string.'''
     with open(file_path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
-def set_background_image_with_base64(file_path):
-    base64_image = get_base64_of_file(file_path)
+def set_background(file_path: str) -> None:
+    '''Sets a background image for a Streamlit app using a base64 encoded image.'''
+    base64_image = _get_base64(file_path)
     st.markdown(
         f"""
         <style>
@@ -77,7 +89,13 @@ def set_background_image_with_base64(file_path):
         unsafe_allow_html=True
     )
 
-def get_test_metrics():
+def get_metrics() -> pd.DataFrame:
+    '''
+    Fetches test metrics from the database and processes them into a pandas dataframe.
+
+    Returns:
+        A dataframe containing processed test metrics in a suitable format for streamlit.
+    '''
     db_url = get_config()
 
     engine = create_engine(db_url)
@@ -123,8 +141,8 @@ def get_test_metrics():
 #############################################################################################################################################
 
 if __name__ == '__main__': 
-    set_background_image_with_base64('kuznica.jpeg')
-    df_metrics = get_test_metrics()
+    set_background('kuznica.jpeg')
+    df_metrics = get_metrics()
 
     # Dropdown to select the table
     option = st.selectbox(
@@ -159,12 +177,12 @@ if __name__ == '__main__':
         return f"{d}{suffix}"
 
     # Transform the DataFrame
-    transformed_df_rewa = transform_dataframe(df_rewa)
-    transformed_df_kuznica = transform_dataframe(df_kuznica)
+    transformed_df_rewa = transform(df_rewa)
+    transformed_df_kuznica = transform(df_kuznica)
 
 
     if option == 'rewa':
-        set_background_image_with_base64('rewa.jpeg')
+        set_background('rewa.jpeg')
         # Title for the table
         st.markdown("### Forecast for Rewa, Poland enhanced with Machine Learning")
 
@@ -172,7 +190,7 @@ if __name__ == '__main__':
         st.dataframe(transformed_df_rewa, width = 500, height = 800)
         st.dataframe(df_metrics)
     elif option == 'kuznica':
-        set_background_image_with_base64('kuznica.jpeg')
+        set_background('kuznica.jpeg')
         st.markdown("### Forecast for Kuznica, Poland enhanced with Machine Learning")
 
         # Display the transformed DataFrame

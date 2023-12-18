@@ -1,12 +1,15 @@
-from fastapi import FastAPI
-import mlflow
-import uvicorn
-import pandas as pd
-from main import predict, monitor, retrain
-from data.ingest import ingest_predictions_temp
 import datetime
+import mlflow
 import os
+import pandas as pd
 from pydantic import BaseModel
+from typing import Dict, Any
+
+from fastapi import FastAPI
+import uvicorn
+
+from data.ingest import ingest_predictions_temp
+from main import predict, monitor, retrain
 
 class PredictionParams(BaseModel):
     station: str
@@ -24,8 +27,8 @@ mlflow.set_tracking_uri(f"http://{TRACKING_SERVER_HOST}:5000")
 app = FastAPI()
 
 @app.post("/predict")
-def api_predict(params: PredictionParams):
-    """ This will be executed once per day at 2 AM."""
+def api_predict(params: PredictionParams) -> Dict[str, Any]:
+    '''Endpoint to predict the wind and gusts for next 3 days including today. Executed once per day at 2 AM.'''
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
@@ -59,8 +62,8 @@ def api_predict(params: PredictionParams):
     return {"message": "Prediction completed!", "predictions": predictionsGust, "time": time}
 
 @app.post("/monitor")
-def api_monitor(params: PredictionParams):
-    """ This will be executed every day at 11 PM."""
+def api_monitor(params: PredictionParams) -> Dict[str, Any]:
+    '''Endpoint to monitor model performance. Executed every day at 11 PM.'''
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
@@ -78,8 +81,8 @@ def api_monitor(params: PredictionParams):
     return {"message": "Monitor completed!", "r2 score": r2_test, "r2 score forecast": r2_forecast}
 
 @app.post("/retrain")
-def api_retrain(params: PredictionParams):
-    """ This will be executed once per week."""
+def api_retrain(params: PredictionParams) -> Dict[str, Any]:
+    '''Endpoint to retrain the model. Executed once per week.'''
     today = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
     station = params.station
     experiment_name = params.experiment_name
