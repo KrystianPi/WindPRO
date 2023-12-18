@@ -20,7 +20,7 @@ def test_predict_endpoint():
         "mode": "base"
     }
 
-    response = requests.post(url, params=params)
+    response = requests.post(url, json=params)
     assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
 
     data = response.json()
@@ -41,7 +41,7 @@ def test_monitor_endpoint():
         "mode": "base"
     }
 
-    response = requests.post(url, params=params)
+    response = requests.post(url, json=params)
     assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
 
     data = response.json()
@@ -65,7 +65,7 @@ def test_retrain_endpoint():
         "mode": "base"
     }
 
-    response = requests.post(url, params=params)
+    response = requests.post(url, json=params)
     assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
 
     data = response.json()
